@@ -14,8 +14,8 @@ services:
     networks:
       - agentos
 
-  api:
-    container_name: agentos-railway
+  agentos-api:
+    container_name: agentos-api
     build:
       context: .
       dockerfile: Dockerfile
