@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.12"]
 
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +45,3 @@ jobs:
 
       - name: Type-check with mypy
         run: uv run mypy .
-
-      # - name: Run tests
-      #   run: uv run pytest tests

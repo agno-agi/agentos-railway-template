@@ -1,99 +1,74 @@
-from textwrap import dedent
+"""
+Knowledge Agent
+===============
+
+An agent that answers questions using a knowledge base.
+
+Run:
+    python -m agents.knowledge_agent
+"""
 
 from agno.agent import Agent
 from agno.knowledge import Knowledge
 from agno.knowledge.embedder.openai import OpenAIEmbedder
-from agno.models.openai import OpenAIChat
+from agno.models.openai import OpenAIResponses
 from agno.vectordb.pgvector import PgVector, SearchType
 
 from db.session import db_url, get_postgres_db
 
 # ============================================================================
-# Setup knowledge base for storing Agno documentation
+# Setup database and knowledge
 # ============================================================================
+agent_db = get_postgres_db()
 knowledge = Knowledge(
-    name="Agno Documentation",
+    name="Knowledge Base",
     vector_db=PgVector(
         db_url=db_url,
-        table_name="agno_docs",
+        table_name="knowledge_agent_docs",
         search_type=SearchType.hybrid,
         embedder=OpenAIEmbedder(id="text-embedding-3-small"),
     ),
-    # 10 results returned on query
     max_results=10,
-    contents_db=get_postgres_db(),
+    contents_db=agent_db,
 )
 
 # ============================================================================
-# Description & Instructions
+# Agent Instructions
 # ============================================================================
-description = dedent(
-    """\
-    You are AgnoAssist — an AI Agent built to help developers learn and master the Agno framework.
-    Your goal is to provide clear explanations and complete, working code examples to help users understand and effectively use Agno and AgentOS.\
-    """
-)
+instructions = """\
+You are a knowledge assistant that answers questions using the knowledge base.
 
-instructions = dedent(
-    """\
-    Your mission is to provide comprehensive, developer-focused support for the Agno ecosystem.
+WORKFLOW
+--------
+1. Search the knowledge base for relevant information
+2. Provide clear, accurate answers based on what you find
+3. If the answer isn't in the knowledge base, say so
+4. Include sources when possible
 
-    Follow this structured process to ensure accurate and actionable responses:
-
-    1. **Analyze the request**
-        - Determine whether the query requires a knowledge lookup, code generation, or both.
-        - All concepts are within the context of Agno - you don't need to clarify this.
-
-    After analysis, immediately begin the search process (no need to ask for confirmation).
-
-    2. **Search Process**
-        - Use the `search_knowledge` tool to retrieve relevant concepts, code examples, and implementation details.
-        - Perform iterative searches until you've gathered enough information or exhausted relevant terms.
-
-    Once your research is complete, decide whether code creation is required.
-    If it is, ask the user if they'd like you to generate an Agent for them.
-
-    3. **Code Creation**
-        - Provide fully working code examples that can be run as-is.
-        - Always use `agent.run()` (not `agent.print_response()`).
-        - Include all imports, setup, and dependencies.
-        - Add clear comments, type hints, and docstrings.
-        - Demonstrate usage with example queries.
-
-        Example:
-        ```python
-        from agno.agent import Agent
-        from agno.tools.duckduckgo import DuckDuckGoTools
-
-        agent = Agent(tools=[DuckDuckGoTools()])
-
-        response = agent.run("What's happening in France?")
-        print(response)
-        ```
-    """
-)
+GUIDELINES
+----------
+- Be concise and direct
+- Quote relevant sections when helpful
+- If asked for code, provide working examples
+- Ask clarifying questions if the query is ambiguous
+"""
 
 # ============================================================================
-# Create the Agent
+# Create Agent
 # ============================================================================
 knowledge_agent = Agent(
-    id="knowledge-agent",
     name="Knowledge Agent",
-    model=OpenAIChat(id="gpt-5-mini"),
+    model=OpenAIResponses(id="gpt-5.2"),
+    db=agent_db,
     knowledge=knowledge,
-    description=description,
     instructions=instructions,
-    add_history_to_context=True,
-    add_datetime_to_context=True,
     enable_agentic_memory=True,
+    add_datetime_to_context=True,
+    add_history_to_context=True,
     num_history_runs=5,
     markdown=True,
-    db=get_postgres_db(),
 )
 
-# ============================================================================
-# Load the knowledge base
-# ============================================================================
 if __name__ == "__main__":
-    knowledge.add_content(name="Agno Documentation", url="https://docs.agno.com/introduction.md")
-    knowledge.add_content(name="Agno Documentation", url="https://docs.agno.com/get-started/quickstart.md")
+    knowledge.insert(name="Agno Introduction", url="https://docs.agno.com/introduction.md")
+    knowledge.insert(name="Agno Quickstart", url="https://docs.agno.com/get-started/quickstart.md")

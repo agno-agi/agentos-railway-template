@@ -1,4 +1,12 @@
-"""AgentOS"""
+"""
+AgentOS
+=======
+
+The main entry point for AgentOS.
+
+Run:
+    python -m app.main
+"""
 
 from pathlib import Path
 
@@ -7,17 +15,16 @@ from agno.os import AgentOS
 from agents.knowledge_agent import knowledge_agent
 from agents.mcp_agent import mcp_agent
 
-os_config_path = str(Path(__file__).parent.joinpath("config.yaml"))
-
-# Create the AgentOS
+# ============================================================================
+# Create AgentOS
+# ============================================================================
 agent_os = AgentOS(
-    id="agentos-railway",
+    name="AgentOS",
     agents=[knowledge_agent, mcp_agent],
-    # Configuration for the AgentOS
-    config=os_config_path,
+    config=str(Path(__file__).parent / "config.yaml"),
 )
+
 app = agent_os.get_app()
 
 if __name__ == "__main__":
-    # Serve the application
     agent_os.serve(app="main:app", reload=True)

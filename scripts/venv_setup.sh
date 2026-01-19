@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-#    Agno Development Environment Setup
+#    Agno Virtual Environment Setup
 #
 #    Usage: ./scripts/dev_setup.sh
 #
@@ -31,7 +31,7 @@ cat << 'BANNER'
     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝
 BANNER
 echo -e "${NC}"
-echo -e "    ${DIM}Development Environment Setup${NC}"
+echo -e "    ${DIM}Virtual Environment Setup${NC}"
 echo ""
 
 # Preflight

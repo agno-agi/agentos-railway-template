@@ -1,5 +1,5 @@
 [project]
-name = "agentos-railway-template"
+name = "agentos-railway"
 version = "1.0.0"
 requires-python = ">=3.11,<4"
 readme = "README.md"
@@ -7,7 +7,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "Agno", email = "hello@agno.com" }]
 
 dependencies = [
-  "agno==2.3.26",
+  "agno==2.4.0",
   "agno-infra==1.0.4",
   "fastapi[standard]",
   "openai",
@@ -41,7 +41,7 @@ plugins = ["pydantic.mypy"]
 exclude = [".venv*"]
 
 [[tool.mypy.overrides]]
-module = ["pgvector.*", "setuptools.*", "nest_asyncio.*", "agno.*"]
+module = ["pgvector.*", "setuptools.*", "agno.*"]
 ignore_missing_imports = true
 
 [tool.uv.pip]

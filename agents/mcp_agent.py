@@ -1,81 +1,60 @@
-from textwrap import dedent
+"""
+MCP Agent
+=========
+
+An agent that uses MCP tools to answer questions.
+
+Run:
+    python -m agents.mcp_agent
+"""
 
 from agno.agent import Agent
-from agno.models.openai import OpenAIChat
+from agno.models.openai import OpenAIResponses
 from agno.tools.mcp import MCPTools
 
 from db.session import get_postgres_db
 
 # ============================================================================
-# Description & Instructions
+# Setup database and tools
 # ============================================================================
-description = dedent(
-    """\
-    You are Agno Assist — an AI Agent built to help developers learn and master the Agno framework.
-    Your goal is to provide clear explanations and complete, working code examples to help developers understand and effectively use Agno and AgentOS.\
-    """
-)
-
-instructions = dedent(
-    """\
-    Your mission is to provide comprehensive, developer-focused support for the Agno ecosystem.
-
-    Follow this structured process to ensure accurate and actionable responses:
-
-    1. **Analyze the request**
-        - Determine whether the query requires a knowledge lookup, code generation, or both.
-        - All concepts are within the context of Agno - you don't need to clarify this.
-
-    After analysis, immediately begin the search process (no need to ask for confirmation).
-
-    2. **Search Process**
-        - Use the `SearchAgno` tool to retrieve relevant concepts, code examples, and implementation details.
-        - Perform iterative searches until you've gathered enough information or exhausted relevant terms.
-
-    Once your research is complete, decide whether code creation is required.
-    If it is, ask the developer if they'd like you to generate an Agent for them.
-
-    3. **Code Creation**
-        - Provide fully working code examples that can be run as-is.
-        - Write good description and instructuctions for the agents to follow.
-            This is key to the success of the agents.
-        - Always use `agent.run()` (not `agent.print_response()`).
-        - Include all imports, setup, and dependencies.
-        - Add clear comments, type hints, and docstrings.
-        - Demonstrate usage with example queries.
-
-        Example:
-        ```python
-        from agno.agent import Agent
-        from agno.tools.duckduckgo import DuckDuckGoTools
-
-        agent = Agent(tools=[DuckDuckGoTools()])
-
-        response = agent.run("What's happening in France?")
-        print(response)
-        ```
-    """
-)
+agent_db = get_postgres_db()
 
 # ============================================================================
-# Tools
+# Agent Instructions
 # ============================================================================
-tools = [MCPTools(transport="streamable-http", url="https://docs.agno.com/mcp")]
+instructions = """\
+You are a helpful assistant that answers questions using MCP tools.
+
+WORKFLOW
+--------
+1. Use available tools to find relevant information
+2. Provide clear, accurate answers based on what you find
+3. If the answer isn't available, say so
+4. Include sources when possible
+
+GUIDELINES
+----------
+- Be concise and direct
+- Quote relevant sections when helpful
+- If asked for code, provide working examples
+- Ask clarifying questions if the query is ambiguous
+"""
 
 # ============================================================================
-# Create the Agent
+# Create Agent
 # ============================================================================
 mcp_agent = Agent(
-    id="mcp-agent",
     name="MCP Agent",
-    model=OpenAIChat(id="gpt-5-mini"),
-    tools=tools,
-    description=description,
+    model=OpenAIResponses(id="gpt-5.2"),
+    db=agent_db,
+    tools=[MCPTools(url="https://docs.agno.com/mcp")],
     instructions=instructions,
-    add_history_to_context=True,
-    add_datetime_to_context=True,
     enable_agentic_memory=True,
+    add_datetime_to_context=True,
+    add_history_to_context=True,
     num_history_runs=5,
     markdown=True,
-    db=get_postgres_db(),
 )
+
+if __name__ == "__main__":
+    mcp_agent.cli_app(stream=True)
