@@ -1,0 +1,10 @@
+chat:
+  quick_prompts:
+    knowledge-agent:
+      - "What can you do?"
+      - "What can you tell me about Agno?"
+      - "What is AgentOS?"
+    mcp-agent:
+      - "What can you do?"
+      - "What can you tell me about Agno?"
+      - "What is AgentOS?"
