@@ -45,17 +45,17 @@ docker compose up -d --build
 
 This command starts:
 
-- The **AgentOS instance**, which is a FastAPI server, running on [http://localhost:8000](http://localhost:8000).
+- The **AgentOS instance**, which is a FastAPI server, running on [http://localhost:8080](http://localhost:8080).
 - The **PostgreSQL database**, accessible on `localhost:5432`.
 
 Once started, you can:
 
-- Test the API at [http://localhost:8000/docs](http://localhost:8000/docs).
+- Test the API at [http://localhost:8080/docs](http://localhost:8080/docs).
 
 ### Connect to AgentOS UI
 
 - Open the [Agno AgentOS UI](https://os.agno.com).
-- Connect your OS with `http://localhost:8000` as the endpoint. You can name it `AgentOS` (or any name you prefer).
+- Connect your OS with `http://localhost:8080` as the endpoint. You can name it `AgentOS` (or any name you prefer).
 - Explore all the features of AgentOS or go straight to the Chat page to interact with your Agents, Teams and Workflows.
 
 ### How to load the knowledge base locally
@@ -74,7 +74,7 @@ When you're done, stop the application using:
 docker compose down
 ```
 
-### Railway Deployment
+## Railway Deployment
 
 To deploy the application on Railway, please follow the steps below:
 
