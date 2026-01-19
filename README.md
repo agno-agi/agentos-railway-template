@@ -105,7 +105,7 @@ Note: In order to start services again, in the same project on railway, you can 
 ## Project Structure
 
 ```
-agentos-docker/
+agentos-railway/
 ├── agents/              # Your agents
 ├── app/                 # AgentOS entry point
 ├── db/                  # Database connection
