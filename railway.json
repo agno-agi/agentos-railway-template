@@ -6,15 +6,10 @@
   },
   "deploy": {
     "runtime": "V2",
-    "numReplicas": 2,
+    "numReplicas": 1,
     "startCommand": "uvicorn app.main:app --host 0.0.0.0 --port 8080",
     "sleepApplication": false,
     "useLegacyStacker": false,
-    "multiRegionConfig": {
-      "us-east4-eqdc4a": {
-        "numReplicas": 2
-      }
-    },
     "limits": {
       "cpu": 2000,
       "memory": "4Gi"

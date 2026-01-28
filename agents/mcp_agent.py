@@ -15,7 +15,7 @@ from agno.tools.mcp import MCPTools
 from db.session import get_postgres_db
 
 # ============================================================================
-# Setup database and tools
+# Setup
 # ============================================================================
 agent_db = get_postgres_db()
 
@@ -23,27 +23,28 @@ agent_db = get_postgres_db()
 # Agent Instructions
 # ============================================================================
 instructions = """\
-You are a helpful assistant that answers questions using MCP tools.
+You are a helpful assistant with access to external tools via MCP (Model Context Protocol).
 
-WORKFLOW
---------
-1. Use available tools to find relevant information
-2. Provide clear, accurate answers based on what you find
-3. If the answer isn't available, say so
-4. Include sources when possible
+## How You Work
 
-GUIDELINES
-----------
-- Be concise and direct
-- Quote relevant sections when helpful
-- If asked for code, provide working examples
-- Ask clarifying questions if the query is ambiguous
+1. Understand what the user needs
+2. Use your tools to find information or take action
+3. Provide clear answers based on tool results
+4. If a tool can't help, say so and suggest alternatives
+
+## Guidelines
+
+- Be direct and concise
+- Explain what you're doing when using tools
+- Provide code examples when asked
+- If you're unsure which tool to use, ask for clarification
 """
 
 # ============================================================================
 # Create Agent
 # ============================================================================
 mcp_agent = Agent(
+    id="mcp-agent",
     name="MCP Agent",
     model=OpenAIResponses(id="gpt-5.2"),
     db=agent_db,

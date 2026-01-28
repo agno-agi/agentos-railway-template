@@ -1,199 +1,340 @@
-# Agent OS RailwayTemplate
+# AgentOS Railway Template
 
-Run agents, teams, and workflows as a production-ready API. 
-Develop on Docker Desktop and deploy to Railway.
+Deploy a multi-agent system to production on Railway.
 
-## Quickstart
+[What is AgentOS?](https://docs.agno.com/agent-os/introduction) · [Agno Docs](https://docs.agno.com) · [Discord](https://agno.com/discord)
+
+---
+
+## What's Included
+
+| Agent | Pattern | Description |
+|-------|---------|-------------|
+| **Pal** | Learning + Tools | Your AI-powered second brain |
+| Knowledge Agent | RAG | Answers questions from a knowledge base |
+| MCP Agent | Tool Use | Connects to external services via MCP |
+
+**Pal** (Personal Agent that Learns) is your AI-powered second brain. It researches, captures, organizes, connects, and retrieves your personal knowledge - so nothing useful is ever lost.
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
 - [OpenAI API key](https://platform.openai.com/api-keys)
 
-### Clone and configure
-
+### 1. Clone and configure
 ```sh
-git clone https://github.com/agno-agi/agentos-railway.git agentos-railway
+git clone https://github.com/agno-agi/agentos-railway-template.git agentos-railway
 cd agentos-railway
-
 cp example.env .env
-# Add OPENAI_API_KEY to .env
+# Add your OPENAI_API_KEY to .env
 ```
 
-> Agno works with any model provider. Update the agents in `/agents` and add dependencies to `pyproject.toml`.
-
-### Start AgentOS
-
-### Locally using Docker Compose
-
+### 2. Start locally
 ```sh
 docker compose up -d --build
 ```
 
-This starts:
-- **AgentOS** (FastAPI server) on http://localhost:8000
-- **PostgreSQL** with pgvector on localhost:5432
+- **API**: http://localhost:8000
+- **Docs**: http://localhost:8000/docs
+- **Database**: localhost:5432
 
-Open http://localhost:8000/docs to see the API.
-
-### Connect to the control plane
+### 3. Connect to control plane
 
 1. Open [os.agno.com](https://os.agno.com)
-2. Click "Add OS" and select "Local"
+2. Click "Add OS" → "Local"
 3. Enter `http://localhost:8000`
 
-### Stop AgentOS
+---
 
-```sh
-docker compose down
-```
+## Deploy to Railway
 
-### On Railway using the Railway CLI
+### Prerequisites
 
-1. Install the Railway CLI (More details [here](https://docs.railway.com/guides/cli)):
+- [Railway CLI](https://docs.railway.com/guides/cli)
+- `OPENAI_API_KEY` set in your environment
 
-```sh
-brew install railway
-```
-
-2. Login to your Railway account:
-
+### Deploy
 ```sh
 railway login
-```
-
-3. Run the deployment script:
-
-```sh
 ./scripts/railway_up.sh
 ```
 
-4. Monitor the deployment (Optional):
+The script provisions PostgreSQL, configures environment variables, and deploys your application.
 
-```sh
-railway logs --service agent_os
-```
-
-5. Access the application via the Railway UI:
-
-```sh
-railway open
-```
-
-6. In the CLI, you will see the domain of your application. Click on it to access your AgentOS FastAPI server. You can navigate to `<railway-domain>/docs` to access the API documentation.
-
-### Connect to the control plane
+### Connect to control plane
 
 1. Open [os.agno.com](https://os.agno.com)
-2. Click "Add OS" and select "Live"
-3. Enter `<railway-domain>`
+2. Click "Add OS" → "Live"
+3. Enter your Railway domain
 
-### Stopping your Railway Deployment
+### Manage deployment
+```sh
+railway logs --service agent_os     # View logs
+railway open                         # Open dashboard
+railway up --service agent_os -d     # Update after changes
+```
 
-To stop your Railway deployment, you can run the following command:
-
+To stop services:
 ```sh
 railway down --service agent_os
 railway down --service pgvector
 ```
 
-This will stop your services on Railway.
+---
 
-Note: In order to start services again, in the same project on railway, you can run the `./scripts/railway_up.sh` script again but make sure to remove the railway init command as that will create a new project on Railway.
+## The Agents
 
+### Pal (Personal Agent that Learns)
+
+Your AI-powered second brain. Pal researches, captures, organizes, connects, and retrieves your personal knowledge - so nothing useful is ever lost.
+
+**What Pal stores:**
+
+| Type | Examples |
+|------|----------|
+| **Notes** | Ideas, decisions, snippets, learnings |
+| **Bookmarks** | URLs with context - why you saved it |
+| **People** | Contacts - who they are, how you know them |
+| **Meetings** | Notes, decisions, action items |
+| **Projects** | Goals, status, related items |
+| **Research** | Findings from web search, saved for later |
+
+**Try it:**
+```
+Note: decided to use Postgres for the new project - better JSON support
+Bookmark https://www.ashpreetbedi.com/articles/lm-technical-design - great intro
+Met Sarah Chen at the AI meetup - she's a PM at Anthropic
+What notes do I have?
+Research event sourcing patterns and save the key findings
+What do I know about event sourcing?
+Prepare me for a meeting with Sarah
+```
+
+**How it works:**
+- **DuckDB** stores your actual data (notes, bookmarks, people, etc.)
+- **Learning system** remembers schemas and research findings
+- **Exa search** powers web research, company lookup, and people search
+
+**Data persistence:** Pal stores structured data in DuckDB at `/data/pal.db`. This persists across container restarts.
+
+### Knowledge Agent
+
+Answers questions using a vector knowledge base (RAG pattern).
+
+**Try it:**
+```
+What is Agno?
+How do I create my first agent?
+What documents are in your knowledge base?
+```
+
+**Load documents:**
+```sh
+# Local
+docker exec -it agentos-api python -m agents.knowledge_agent
+
+# Railway
+railway run python -m agents.knowledge_agent
+```
+
+### MCP Agent
+
+Connects to external tools via the Model Context Protocol.
+
+**Try it:**
+```
+What tools do you have access to?
+Search the docs for how to use LearningMachine
+Find examples of agents with memory
+```
+
+---
 
 ## Project Structure
+```
+├── agents/
+│   ├── pal.py              # Personal second brain agent
+│   ├── knowledge_agent.py  # RAG agent
+│   └── mcp_agent.py        # MCP tools agent
+├── app/
+│   ├── main.py             # AgentOS entry point
+│   └── config.yaml         # Quick prompts config
+├── db/
+│   ├── session.py          # Database session
+│   └── url.py              # Connection URL builder
+├── scripts/                # Helper scripts
+├── compose.yaml            # Docker Compose config
+├── Dockerfile
+├── railway.json            # Railway config
+└── pyproject.toml          # Dependencies
+```
 
-```
-agentos-railway/
-├── agents/              # Your agents
-├── app/                 # AgentOS entry point
-├── db/                  # Database connection
-├── scripts/             # Helper scripts
-├── compose.yaml         # Docker Compose configuration
-├── Dockerfile           # Container build
-├── example.env          # Example environment variables
-└── pyproject.toml       # Python dependencies
-```
+---
 
 ## Common Tasks
 
-### Load a knowledge base
+### Add your own agent
 
-Locally:
-```sh
-docker exec -it agentos-api python -m agents.knowledge_agent
+1. Create `agents/my_agent.py`:
+```python
+from agno.agent import Agent
+from agno.models.openai import OpenAIResponses
+from db.session import get_postgres_db
+
+my_agent = Agent(
+    id="my-agent",
+    name="My Agent",
+    model=OpenAIResponses(id="gpt-5.2"),
+    db=get_postgres_db(),
+    instructions="You are a helpful assistant.",
+)
 ```
 
-Railway:
-```sh
-railway ssh --service agent_os
-python -m agents.knowledge_agent
+2. Register in `app/main.py`:
+```python
+from agents.my_agent import my_agent
+
+agent_os = AgentOS(
+    name="AgentOS",
+    agents=[pal, knowledge_agent, mcp_agent, my_agent],
+    ...
+)
 ```
 
-### View logs
-```sh
-docker compose logs -f
-```
+3. Restart: `docker compose restart`
 
-### Restart after code changes
-```sh
-docker compose restart
-```
+### Add tools to an agent
 
-### Updating your Railway Deployment
+Agno includes 100+ tool integrations. See the [full list](https://docs.agno.com/tools/toolkits).
+```python
+from agno.tools.slack import SlackTools
+from agno.tools.google_calendar import GoogleCalendarTools
 
-To update your Railway deployment, you can run the following command after making changes to the application:
-
-```sh
-railway up --service agent_os -d
-```
-
-This will trigger a new deployment of your application by creating a new docker image and deploying it to Railway.
-
-### Railway Performance
-
-Based on your requirements, please make sure to update the CPU and Memory limits in the `railway.json` file. We recommend using 2000 CPU and 4Gi Memory for the AgentOS and PgVector database.
-
-### What the railway_up.sh script does:
-
-The script does the following:
-
-1. Initializes a new project on Railway
-2. Deploys PgVector database on Railway
-3. Creates the application service with environment variables already set (DB_DRIVER, DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_DATABASE, OPENAI_API_KEY)
-4. Deploys the application
-5. Creates a domain for your application
-
-## Local Development
-
-For development without Docker:
-
-### Install uv
-```sh
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-### Setup environment
-```sh
-./scripts/venv_setup.sh
-source .venv/bin/activate
+my_agent = Agent(
+    ...
+    tools=[
+        SlackTools(),
+        GoogleCalendarTools(),
+    ],
+)
 ```
 
 ### Add dependencies
 
 1. Edit `pyproject.toml`
-2. Regenerate requirements:
-```sh
-./scripts/generate_requirements.sh
+2. Regenerate requirements: `./scripts/generate_requirements.sh`
+3. Rebuild: `docker compose up -d --build`
+
+### Use a different model provider
+
+1. Add your API key to `.env` (e.g., `ANTHROPIC_API_KEY`)
+2. Update agents to use the new provider:
+```python
+from agno.models.anthropic import Claude
+
+model=Claude(id="claude-sonnet-4-5")
 ```
-3. Rebuild:
-```sh
-docker compose up -d --build
+3. Add dependency: `anthropic` in `pyproject.toml`
+
+### Scale on Railway
+
+Edit `railway.json`:
+```json
+{
+  "deploy": {
+    "numReplicas": 2
+  }
+}
 ```
+
+---
+
+## Local Development
+
+For development without Docker:
+```sh
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Setup environment
+./scripts/venv_setup.sh
+source .venv/bin/activate
+
+# Start PostgreSQL (required)
+docker compose up -d agentos-db
+
+# Run the app
+python -m app.main
+```
+
+---
+
+## Environment Variables
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `OPENAI_API_KEY` | Yes | - | OpenAI API key |
+| `DB_HOST` | No | `localhost` | Database host |
+| `DB_PORT` | No | `5432` | Database port |
+| `DB_USER` | No | `ai` | Database user |
+| `DB_PASS` | No | `ai` | Database password |
+| `DB_DATABASE` | No | `ai` | Database name |
+| `DATA_DIR` | No | `/data` | Directory for DuckDB storage |
+| `RUNTIME_ENV` | No | `prd` | Set to `dev` for auto-reload |
+
+---
+
+## Extending Pal
+
+Pal is designed to be extended. Connect it to your existing tools:
+
+### Communication
+```python
+from agno.tools.slack import SlackTools
+from agno.tools.gmail import GmailTools
+
+tools=[
+    ...
+    SlackTools(),    # Capture decisions from Slack
+    GmailTools(),    # Track important emails
+]
+```
+
+### Productivity
+```python
+from agno.tools.google_calendar import GoogleCalendarTools
+from agno.tools.linear import LinearTools
+
+tools=[
+    ...
+    GoogleCalendarTools(),  # Meeting context
+    LinearTools(),          # Project tracking
+]
+```
+
+### Research
+```python
+from agno.tools.yfinance import YFinanceTools
+from agno.tools.github import GithubTools
+
+tools=[
+    ...
+    YFinanceTools(),  # Financial data
+    GithubTools(),    # Code and repos
+]
+```
+
+See the [Agno Tools documentation](https://docs.agno.com/tools/toolkits) for the full list of available integrations.
+
+---
 
 ## Learn More
 
 - [Agno Documentation](https://docs.agno.com)
-- [AgentOS Documentation](https://docs.agno.com/agent-os)
-- [Discord Community](https://agno.link/discord)
+- [AgentOS Documentation](https://docs.agno.com/agent-os/introduction)
+- [Tools & Integrations](https://docs.agno.com/tools/toolkits)
+- [Discord Community](https://agno.com/discord)

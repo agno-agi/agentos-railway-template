@@ -24,9 +24,9 @@ SessionLocal: sessionmaker[Session] = sessionmaker(autocommit=False, autoflush=F
 # ============================================================================
 # Database Helpers
 # ============================================================================
-def get_postgres_db() -> PostgresDb:
-    """Create a PostgresDb instance for agents."""
-    return PostgresDb(db_url=db_url)
+def get_postgres_db(id: str = "postgres-db") -> PostgresDb:
+    """Create a PostgresDb instance."""
+    return PostgresDb(id=id, db_url=db_url)
 
 
 def get_db() -> Generator[Session, None, None]:

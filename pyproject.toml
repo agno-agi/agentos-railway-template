@@ -1,20 +1,32 @@
 [project]
 name = "agentos-railway"
 version = "1.0.0"
-requires-python = ">=3.11,<4"
+requires-python = ">=3.12,<4"
 readme = "README.md"
 license-files = ["LICENSE"]
 authors = [{ name = "Agno", email = "hello@agno.com" }]
 
 dependencies = [
-  "agno==2.4.0",
-  "agno-infra==1.0.4",
+  # Agno
+  "agno",
+  "agno-infra",
+  # API
   "fastapi[standard]",
+  # Models
   "openai",
+  # Database
   "pgvector",
   "psycopg[binary]",
   "sqlalchemy",
-  "mcp"
+  "duckdb",
+  # Tools
+  "mcp",
+  "reportlab",
+  "duckduckgo-search",
+  # Tracing
+  "opentelemetry-api",
+  "opentelemetry-sdk",
+  "openinference-instrumentation-agno",
 ]
 
 [project.optional-dependencies]
@@ -29,8 +41,8 @@ build-backend = "setuptools.build_meta"
 [tool.ruff]
 line-length = 120
 exclude = [".venv*"]
+
 [tool.ruff.lint.per-file-ignores]
-# Ignore `F401` (import violations) in all `__init__.py` files
 "__init__.py" = ["F401", "F403"]
 
 [tool.mypy]
@@ -41,7 +53,7 @@ plugins = ["pydantic.mypy"]
 exclude = [".venv*"]
 
 [[tool.mypy.overrides]]
-module = ["pgvector.*", "setuptools.*", "agno.*"]
+module = ["pgvector.*", "setuptools.*", "agno.*", "duckdb.*"]
 ignore_missing_imports = true
 
 [tool.uv.pip]
