@@ -4,7 +4,7 @@ MCP Agent
 
 An agent that uses MCP tools to answer questions.
 
-Run:
+Test:
     python -m agents.mcp_agent
 """
 

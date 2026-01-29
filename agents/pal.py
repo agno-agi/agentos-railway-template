@@ -7,7 +7,7 @@ Your AI-powered second brain.
 Pal researches, captures, organizes, connects, and retrieves your personal
 knowledge - so nothing useful is ever lost.
 
-Run:
+Test:
     python -m agents.pal
 """
 
