@@ -76,7 +76,7 @@ knowledge_agent = Agent(
 def load_default_documents() -> None:
     """Load default documents into the knowledge base."""
     knowledge.insert(name="Agno Introduction", url="https://docs.agno.com/introduction.md")
-    knowledge.insert(name="Agno Quickstart", url="https://docs.agno.com/get-started/quickstart.md")
+    knowledge.insert(name="Agno First Agent", url="https://docs.agno.com/first-agent.md")
 
 
 if __name__ == "__main__":
