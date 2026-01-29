@@ -4,8 +4,6 @@ Deploy a multi-agent system to production on Railway.
 
 [What is AgentOS?](https://docs.agno.com/agent-os/introduction) · [Agno Docs](https://docs.agno.com) · [Discord](https://agno.com/discord)
 
----
-
 ## What's Included
 
 | Agent | Pattern | Description |
@@ -15,8 +13,6 @@ Deploy a multi-agent system to production on Railway.
 | MCP Agent | Tool Use | Connects to external services via MCP |
 
 **Pal** (Personal Agent that Learns) is your AI-powered second brain. It researches, captures, organizes, connects, and retrieves your personal knowledge - so nothing useful is ever lost.
-
----
 
 ## Quick Start
 
@@ -29,6 +25,7 @@ Deploy a multi-agent system to production on Railway.
 ```sh
 git clone https://github.com/agno-agi/agentos-railway-template.git agentos-railway
 cd agentos-railway
+
 cp example.env .env
 # Add your OPENAI_API_KEY to .env
 ```
@@ -48,8 +45,6 @@ docker compose up -d --build
 2. Click "Add OS" → "Local"
 3. Enter `http://localhost:8000`
 
----
-
 ## Deploy to Railway
 
 ### Prerequisites
@@ -58,6 +53,7 @@ docker compose up -d --build
 - `OPENAI_API_KEY` set in your environment
 
 ### Deploy
+
 ```sh
 railway login
 ./scripts/railway_up.sh
@@ -72,8 +68,9 @@ The script provisions PostgreSQL, configures environment variables, and deploys 
 3. Enter your Railway domain
 
 ### Manage deployment
+
 ```sh
-railway logs --service agent_os     # View logs
+railway logs --service agent_os      # View logs
 railway open                         # Open dashboard
 railway up --service agent_os -d     # Update after changes
 ```
@@ -178,6 +175,7 @@ Find examples of agents with memory
 ### Add your own agent
 
 1. Create `agents/my_agent.py`:
+
 ```python
 from agno.agent import Agent
 from agno.models.openai import OpenAIResponses
@@ -193,6 +191,7 @@ my_agent = Agent(
 ```
 
 2. Register in `app/main.py`:
+
 ```python
 from agents.my_agent import my_agent
 
@@ -208,6 +207,7 @@ agent_os = AgentOS(
 ### Add tools to an agent
 
 Agno includes 100+ tool integrations. See the [full list](https://docs.agno.com/tools/toolkits).
+
 ```python
 from agno.tools.slack import SlackTools
 from agno.tools.google_calendar import GoogleCalendarTools
@@ -231,6 +231,7 @@ my_agent = Agent(
 
 1. Add your API key to `.env` (e.g., `ANTHROPIC_API_KEY`)
 2. Update agents to use the new provider:
+
 ```python
 from agno.models.anthropic import Claude
 
@@ -254,6 +255,7 @@ Edit `railway.json`:
 ## Local Development
 
 For development without Docker:
+
 ```sh
 # Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -269,8 +271,6 @@ docker compose up -d agentos-db
 python -m app.main
 ```
 
----
-
 ## Environment Variables
 
 | Variable | Required | Default | Description |
@@ -284,50 +284,6 @@ python -m app.main
 | `DB_DATABASE` | No | `ai` | Database name |
 | `DATA_DIR` | No | `/data` | Directory for DuckDB storage |
 | `RUNTIME_ENV` | No | `prd` | Set to `dev` for auto-reload |
-
----
-
-## Extending Pal
-
-Pal is designed to be extended. Connect it to your existing tools:
-
-### Communication
-```python
-from agno.tools.slack import SlackTools
-from agno.tools.gmail import GmailTools
-
-tools=[
-    ...
-    SlackTools(),    # Capture decisions from Slack
-    GmailTools(),    # Track important emails
-]
-```
-
-### Productivity
-```python
-from agno.tools.google_calendar import GoogleCalendarTools
-from agno.tools.linear import LinearTools
-
-tools=[
-    ...
-    GoogleCalendarTools(),  # Meeting context
-    LinearTools(),          # Project tracking
-]
-```
-
-### Research
-```python
-from agno.tools.yfinance import YFinanceTools
-from agno.tools.github import GithubTools
-
-tools=[
-    ...
-    YFinanceTools(),  # Financial data
-    GithubTools(),    # Code and repos
-]
-```
-
-See the [Agno Tools documentation](https://docs.agno.com/tools/toolkits) for the full list of available integrations.
 
 ---
 

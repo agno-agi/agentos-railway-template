@@ -35,7 +35,7 @@ from db import db_url, get_postgres_db
 # Setup
 # ============================================================================
 agent_db = get_postgres_db(contents_table="pal_contents")
-data_dir = Path(getenv("DATA_DIR", "/data"))
+data_dir = Path(getenv("DATA_DIR", "."))
 data_dir.mkdir(parents=True, exist_ok=True)
 
 duckdb_path = str(data_dir / "pal.db")
