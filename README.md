@@ -107,11 +107,9 @@ Your AI-powered second brain. Pal researches, captures, organizes, connects, and
 ```
 Note: decided to use Postgres for the new project - better JSON support
 Bookmark https://www.ashpreetbedi.com/articles/lm-technical-design - great intro
-Met Sarah Chen at the AI meetup - she's a PM at Anthropic
-What notes do I have?
 Research event sourcing patterns and save the key findings
+What notes do I have?
 What do I know about event sourcing?
-Prepare me for a meeting with Sarah
 ```
 
 **How it works:**

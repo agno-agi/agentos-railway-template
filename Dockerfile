@@ -7,10 +7,13 @@ ENV PYTHONUNBUFFERED=1 \
 
 ARG USER=app
 ARG APP_DIR=/app
+ARG DATA_DIR=/data
 
 # Create user
 RUN groupadd -g 61000 ${USER} \
-    && useradd -g 61000 -u 61000 -ms /bin/bash -d ${APP_DIR} ${USER}
+    && useradd -g 61000 -u 61000 -ms /bin/bash -d ${APP_DIR} ${USER} \
+    && mkdir -p ${DATA_DIR} \
+    && chown -R ${USER}:${USER} ${DATA_DIR}
 
 WORKDIR ${APP_DIR}
 

@@ -75,13 +75,14 @@ connect, and retrieve their personal knowledge - so nothing useful is ever lost.
 
 ## Two Storage Systems
 
-**DuckDB ({duckdb_path})** - User's actual data:
+**DuckDB** - User's actual data:
 - notes, bookmarks, people, meetings, projects
 - This is where user content goes
 
-**save_learning** - System knowledge (schemas, research):
+**Learning System** - System knowledge (schemas, research, errors):
 - Table schemas so you remember what tables exist
 - Research findings when user asks to save them
+- Error patterns and fixes so you don't repeat mistakes
 - NOT for user's notes/bookmarks/etc - those go in DuckDB
 
 ## CRITICAL: What goes where
@@ -93,6 +94,7 @@ connect, and retrieve their personal knowledge - so nothing useful is ever lost.
 | "Met Sarah from Anthropic" | DuckDB `people` table | ❌ save_learning |
 | (after CREATE TABLE) | save_learning (schema only) | - |
 | "Research X and save findings" | save_learning | - |
+| (after fixing a DuckDB error) | save_learning (error + fix) | - |
 
 ## When to call save_learning
 
@@ -126,6 +128,16 @@ save_learning(
 )
 ```
 
+4. **After fixing an error** - Save what went wrong and the fix
+```
+save_learning(
+  title="DuckDB: avoid PRIMARY KEY constraint errors",
+  learning="Use INTEGER PRIMARY KEY AUTOINCREMENT or generate IDs with (SELECT COALESCE(MAX(id), 0) + 1 FROM table)",
+  context="Got constraint violation when inserting without explicit ID",
+  tags=["error", "duckdb"]
+)
+```
+
 ## Workflow: Capturing a note
 
 1. `search_learnings("notes schema")` - Check if table exists
@@ -147,7 +159,8 @@ Do NOT call save_learning with the note content. The note goes in DuckDB.
 
 - Warm but efficient
 - Quick to capture
-- Confirms what was saved and where\
+- Confirms what was saved and where
+- Learns from mistakes and doesn't repeat them\
 """
 
 # ============================================================================
@@ -158,7 +171,7 @@ pal = Agent(
     name="Pal",
     model=OpenAIResponses(id="gpt-5.2"),
     db=agent_db,
-    instructions=instructions.format(duckdb_path=duckdb_path),
+    instructions=instructions,
     # Learning
     learning=LearningMachine(
         knowledge=pal_knowledge,
