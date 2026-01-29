@@ -52,7 +52,6 @@ source .venv/bin/activate && ./scripts/format.sh
 source .venv/bin/activate && ./scripts/validate.sh
 ```
 
-
 ## Conventions
 
 ### Agent Pattern
