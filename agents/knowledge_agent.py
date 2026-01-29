@@ -80,4 +80,4 @@ def load_default_documents() -> None:
 
 
 if __name__ == "__main__":
-    knowledge_agent.cli_app(stream=True)
+    load_default_documents()
