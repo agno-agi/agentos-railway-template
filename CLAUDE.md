@@ -81,7 +81,7 @@ my_agent = Agent(
 )
 
 if __name__ == "__main__":
-    my_agent.cli_app(stream=True)
+    my_agent.print_response("Hello!", stream=True)
 ```
 
 ### Database
@@ -140,10 +140,12 @@ source .venv/bin/activate
 # Local development with Docker
 docker compose up -d --build
 
-# Run individual agent CLI
+# Test individual agents
 python -m agents.pal
-python -m agents.knowledge_agent
 python -m agents.mcp_agent
+
+# Load documents into knowledge agent
+python -m agents.knowledge_agent
 
 # Format & validation (run from activated venv)
 ./scripts/format.sh

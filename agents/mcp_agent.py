@@ -59,4 +59,4 @@ mcp_agent = Agent(
 )
 
 if __name__ == "__main__":
-    mcp_agent.cli_app(stream=True)
+    mcp_agent.print_response("What tools do you have access to?", stream=True)

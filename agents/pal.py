@@ -194,4 +194,4 @@ pal = Agent(
 )
 
 if __name__ == "__main__":
-    pal.cli_app(stream=True)
+    pal.print_response("Tell me about yourself", stream=True)
