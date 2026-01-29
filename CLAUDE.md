@@ -466,6 +466,11 @@ agent_os = AgentOS(
 
 ### Documentation Links
 
+**LLM-friendly documentation (for fetching):**
+- https://docs.agno.com/llms.txt - Concise overview of Agno framework
+- https://docs.agno.com/llms-full.txt - Complete Agno documentation
+
+**Web documentation:**
 - [Agno Docs](https://docs.agno.com)
 - [AgentOS Introduction](https://docs.agno.com/agent-os/introduction)
 - [Tools & Integrations](https://docs.agno.com/tools/toolkits)
