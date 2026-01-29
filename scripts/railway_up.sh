@@ -61,12 +61,14 @@ echo ""
 echo -e "${BOLD}Creating application service...${NC}"
 echo ""
 railway add --service agent_os \
-    --variables "DB_DRIVER=postgresql+psycopg" \
     --variables 'DB_USER=${{pgvector.PGUSER}}' \
     --variables 'DB_PASS=${{pgvector.PGPASSWORD}}' \
     --variables 'DB_HOST=${{pgvector.PGHOST}}' \
     --variables 'DB_PORT=${{pgvector.PGPORT}}' \
     --variables 'DB_DATABASE=${{pgvector.PGDATABASE}}' \
+    --variables "DB_DRIVER=postgresql+psycopg" \
+    --variables "WAIT_FOR_DB=True" \
+    --variables "DATA_DIR=/data" \
     --variables "OPENAI_API_KEY=${OPENAI_API_KEY}"
 
 echo ""

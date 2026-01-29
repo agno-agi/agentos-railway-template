@@ -1,10 +1,14 @@
 chat:
   quick_prompts:
+    pal:
+      - "Tell me about yourself"
+      - "Note: decided to use Postgres for the new project"
+      - "Research event sourcing patterns and save the key findings"
     knowledge-agent:
       - "What is Agno?"
-      - "What is AgentOS?"
-      - "What can you do?"
+      - "How do I create my first agent?"
+      - "What documents are in your knowledge base?"
     mcp-agent:
       - "What is Agno?"
-      - "What is AgentOS?"
-      - "What can you do?"
+      - "What tools do you have access to?"
+      - "What are Learning Machines?"

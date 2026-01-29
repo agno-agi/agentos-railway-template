@@ -17,11 +17,11 @@ from agno.vectordb.pgvector import PgVector, SearchType
 from db.session import db_url, get_postgres_db
 
 # ============================================================================
-# Setup database and knowledge
+# Setup
 # ============================================================================
-agent_db = get_postgres_db()
+agent_db = get_postgres_db("knowledge-agent-db")
 knowledge = Knowledge(
-    name="Knowledge Base",
+    name="Knowledge Agent",
     vector_db=PgVector(
         db_url=db_url,
         table_name="knowledge_agent_docs",
@@ -36,32 +36,34 @@ knowledge = Knowledge(
 # Agent Instructions
 # ============================================================================
 instructions = """\
-You are a knowledge assistant that answers questions using the knowledge base.
+You are a knowledge assistant. You answer questions by searching your knowledge base.
 
-WORKFLOW
---------
+## How You Work
+
 1. Search the knowledge base for relevant information
-2. Provide clear, accurate answers based on what you find
-3. If the answer isn't in the knowledge base, say so
-4. Include sources when possible
+2. Answer based on what you find
+3. Cite your sources
+4. If the information isn't in the knowledge base, say so clearly
 
-GUIDELINES
-----------
-- Be concise and direct
-- Quote relevant sections when helpful
-- If asked for code, provide working examples
-- Ask clarifying questions if the query is ambiguous
+## Guidelines
+
+- Be direct and concise
+- Quote relevant passages when they add value
+- Provide code examples when asked
+- Don't make up information - only use what's in the knowledge base
 """
 
 # ============================================================================
 # Create Agent
 # ============================================================================
 knowledge_agent = Agent(
+    id="knowledge-agent",
     name="Knowledge Agent",
     model=OpenAIResponses(id="gpt-5.2"),
     db=agent_db,
     knowledge=knowledge,
     instructions=instructions,
+    search_knowledge=True,
     enable_agentic_memory=True,
     add_datetime_to_context=True,
     add_history_to_context=True,
