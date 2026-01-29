@@ -14,12 +14,12 @@ from agno.knowledge.embedder.openai import OpenAIEmbedder
 from agno.models.openai import OpenAIResponses
 from agno.vectordb.pgvector import PgVector, SearchType
 
-from db.session import db_url, get_postgres_db
+from db import db_url, get_postgres_db
 
 # ============================================================================
 # Setup
 # ============================================================================
-agent_db = get_postgres_db("knowledge-agent-db")
+agent_db = get_postgres_db(contents_table="knowledge_agent_contents")
 knowledge = Knowledge(
     name="Knowledge Agent",
     vector_db=PgVector(
@@ -67,10 +67,17 @@ knowledge_agent = Agent(
     enable_agentic_memory=True,
     add_datetime_to_context=True,
     add_history_to_context=True,
+    read_chat_history=True,
     num_history_runs=5,
     markdown=True,
 )
 
-if __name__ == "__main__":
+
+def load_default_documents() -> None:
+    """Load default documents into the knowledge base."""
     knowledge.insert(name="Agno Introduction", url="https://docs.agno.com/introduction.md")
     knowledge.insert(name="Agno Quickstart", url="https://docs.agno.com/get-started/quickstart.md")
+
+
+if __name__ == "__main__":
+    knowledge_agent.cli_app(stream=True)

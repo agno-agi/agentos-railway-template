@@ -4,7 +4,7 @@
 #
 #    Agno Railway Deployment
 #
-#    Usage: ./scripts/deploy_railway.sh
+#    Usage: ./scripts/railway_up.sh
 #
 #    Prerequisites:
 #      - Railway CLI installed

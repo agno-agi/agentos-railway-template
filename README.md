@@ -162,7 +162,7 @@ Find examples of agents with memory
 │   ├── main.py             # AgentOS entry point
 │   └── config.yaml         # Quick prompts config
 ├── db/
-│   ├── session.py          # Database session
+│   ├── session.py          # PostgreSQL database helpers
 │   └── url.py              # Connection URL builder
 ├── scripts/                # Helper scripts
 ├── compose.yaml            # Docker Compose config
@@ -181,7 +181,7 @@ Find examples of agents with memory
 ```python
 from agno.agent import Agent
 from agno.models.openai import OpenAIResponses
-from db.session import get_postgres_db
+from db import get_postgres_db
 
 my_agent = Agent(
     id="my-agent",
@@ -276,6 +276,7 @@ python -m app.main
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `OPENAI_API_KEY` | Yes | - | OpenAI API key |
+| `EXA_API_KEY` | No | - | Exa API key for web research (enables Pal's research tools) |
 | `DB_HOST` | No | `localhost` | Database host |
 | `DB_PORT` | No | `5432` | Database port |
 | `DB_USER` | No | `ai` | Database user |

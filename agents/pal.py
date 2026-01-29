@@ -29,12 +29,12 @@ from agno.tools.duckdb import DuckDbTools
 from agno.tools.mcp import MCPTools
 from agno.vectordb.pgvector import PgVector, SearchType
 
-from db.session import db_url, get_postgres_db
+from db import db_url, get_postgres_db
 
 # ============================================================================
 # Setup
 # ============================================================================
-agent_db = get_postgres_db()
+agent_db = get_postgres_db(contents_table="pal_contents")
 data_dir = Path(getenv("DATA_DIR", "/data"))
 data_dir.mkdir(parents=True, exist_ok=True)
 
@@ -60,7 +60,7 @@ pal_knowledge = Knowledge(
         search_type=SearchType.hybrid,
         embedder=OpenAIEmbedder(id="text-embedding-3-small"),
     ),
-    contents_db=get_postgres_db("pal-knowledge-db"),
+    contents_db=agent_db,
 )
 
 # ============================================================================

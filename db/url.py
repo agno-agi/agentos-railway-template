@@ -8,7 +8,7 @@ Build database connection URL from environment variables.
 from os import getenv
 
 
-def get_db_url() -> str:
+def build_db_url() -> str:
     """Build database URL from environment variables."""
     driver = getenv("DB_DRIVER", "postgresql+psycopg")
     user = getenv("DB_USER", "ai")
@@ -18,3 +18,6 @@ def get_db_url() -> str:
     database = getenv("DB_DATABASE", "ai")
 
     return f"{driver}://{user}:{password}@{host}:{port}/{database}"
+
+
+db_url = build_db_url()

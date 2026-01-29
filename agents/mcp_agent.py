@@ -12,7 +12,7 @@ from agno.agent import Agent
 from agno.models.openai import OpenAIResponses
 from agno.tools.mcp import MCPTools
 
-from db.session import get_postgres_db
+from db import get_postgres_db
 
 # ============================================================================
 # Setup
@@ -53,6 +53,7 @@ mcp_agent = Agent(
     enable_agentic_memory=True,
     add_datetime_to_context=True,
     add_history_to_context=True,
+    read_chat_history=True,
     num_history_runs=5,
     markdown=True,
 )

@@ -2,37 +2,23 @@
 Database Session
 ================
 
-Database connection and session management.
+PostgreSQL database connection for AgentOS.
 """
 
-from typing import Generator
-
 from agno.db.postgres import PostgresDb
-from sqlalchemy.engine import Engine, create_engine
-from sqlalchemy.orm import Session, sessionmaker
 
-from db.url import get_db_url
-
-# ============================================================================
-# Database Setup
-# ============================================================================
-db_url: str = get_db_url()
-db_engine: Engine = create_engine(db_url, pool_pre_ping=True)
-SessionLocal: sessionmaker[Session] = sessionmaker(autocommit=False, autoflush=False, bind=db_engine)
+from db.url import db_url
 
 
-# ============================================================================
-# Database Helpers
-# ============================================================================
-def get_postgres_db(id: str = "postgres-db") -> PostgresDb:
-    """Create a PostgresDb instance."""
-    return PostgresDb(id=id, db_url=db_url)
+def get_postgres_db(contents_table: str | None = None) -> PostgresDb:
+    """Create a PostgresDb instance.
 
+    Args:
+        contents_table: Optional table name for storing knowledge contents.
 
-def get_db() -> Generator[Session, None, None]:
-    """Dependency to get a database session."""
-    db: Session = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    Returns:
+        Configured PostgresDb instance.
+    """
+    if contents_table:
+        return PostgresDb(db_url=db_url, knowledge_table=contents_table)
+    return PostgresDb(db_url=db_url)
