@@ -41,8 +41,9 @@ data_dir.mkdir(parents=True, exist_ok=True)
 duckdb_path = str(data_dir / "pal.db")
 
 # Exa MCP for research
+EXA_API_KEY = getenv("EXA_API_KEY", "")
 EXA_MCP_URL = (
-    "https://mcp.exa.ai/mcp?tools="
+    f"https://mcp.exa.ai/mcp?exaApiKey={EXA_API_KEY}&tools="
     "web_search_exa,"
     "get_code_context_exa,"
     "company_research_exa,"
