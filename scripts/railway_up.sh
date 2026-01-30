@@ -69,7 +69,8 @@ railway add --service agent_os \
     --variables "DB_DRIVER=postgresql+psycopg" \
     --variables "WAIT_FOR_DB=True" \
     --variables "DATA_DIR=/data" \
-    --variables "OPENAI_API_KEY=${OPENAI_API_KEY}"
+    --variables "OPENAI_API_KEY=${OPENAI_API_KEY}" \
+    --variables "PORT=8000"
 
 echo ""
 echo -e "${BOLD}Deploying application...${NC}"

@@ -277,6 +277,7 @@ python -m app.main
 |----------|----------|---------|-------------|
 | `OPENAI_API_KEY` | Yes | - | OpenAI API key |
 | `EXA_API_KEY` | No | - | Exa API key for web research (enables Pal's research tools) |
+| `PORT` | No | `8000` | API server port |
 | `DB_HOST` | No | `localhost` | Database host |
 | `DB_PORT` | No | `5432` | Database port |
 | `DB_USER` | No | `ai` | Database user |

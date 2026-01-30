@@ -171,6 +171,7 @@ Required:
 Optional:
 - `EXA_API_KEY` - Enables Pal's web research tools
 - `DB_DRIVER` - Database driver (default: `postgresql+psycopg`)
+- `PORT` - API server port (default: `8000`)
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_DATABASE`
 - `DATA_DIR` - DuckDB storage location (default: `/data`)
 - `RUNTIME_ENV` - Set to `dev` for auto-reload
