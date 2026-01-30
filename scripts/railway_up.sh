@@ -54,7 +54,7 @@ fi
 
 echo -e "${BOLD}Initializing project...${NC}"
 echo ""
-railway init -n "agno"
+railway init -n "agno-agentos"
 
 echo ""
 echo -e "${BOLD}Deploying PgVector database...${NC}"
