@@ -33,14 +33,6 @@ cat << 'BANNER'
 BANNER
 echo -e "${NC}"
 
-# Load .env if it exists
-if [[ -f .env ]]; then
-    set -a
-    source .env
-    set +a
-    echo -e "${DIM}Loaded .env${NC}"
-fi
-
 # Preflight
 if ! command -v railway &> /dev/null; then
     echo "Railway CLI not found. Install: https://docs.railway.app/guides/cli"
@@ -48,7 +40,7 @@ if ! command -v railway &> /dev/null; then
 fi
 
 if [[ -z "$OPENAI_API_KEY" ]]; then
-    echo "OPENAI_API_KEY not set. Add to .env or export it."
+    echo "OPENAI_API_KEY not set."
     exit 1
 fi
 
@@ -79,12 +71,6 @@ railway add --service agent_os \
     --variables "DATA_DIR=/data" \
     --variables "OPENAI_API_KEY=${OPENAI_API_KEY}" \
     --variables "PORT=8000"
-
-# Add optional EXA_API_KEY if set
-if [[ -n "$EXA_API_KEY" ]]; then
-    echo -e "${DIM}Adding EXA_API_KEY...${NC}"
-    railway variables --set "EXA_API_KEY=${EXA_API_KEY}" --service agent_os --skip-deploys
-fi
 
 echo ""
 echo -e "${BOLD}Deploying application...${NC}"
