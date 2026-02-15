@@ -10,15 +10,20 @@ AgentOS - A multi-agent system built on the Agno framework, deployable to Railwa
 
 ```
 AgentOS (app/main.py)
-├── Pal Agent (agents/pal.py)           # Personal second brain with learning
+├── Scout Agent (agents/scout.py)                # Enterprise knowledge via S3 browsing
+├── Pal Agent (agents/pal.py)                    # Personal second brain with learning
 ├── Knowledge Agent (agents/knowledge_agent.py)  # RAG-based Q&A
-└── MCP Agent (agents/mcp_agent.py)     # External tools via MCP
+└── MCP Agent (agents/mcp_agent.py)              # External tools via MCP
 ```
 
 All agents share:
 - PostgreSQL database (pgvector) for persistence
 - OpenAI GPT-5.2 model
 - Chat history and context management
+
+Scout additionally uses:
+- Railway Buckets (S3-compatible) via `storage/` module
+- Two knowledge bases (static routing + dynamic discoveries)
 
 ## Key Files
 
@@ -27,6 +32,9 @@ All agents share:
 | `app/main.py` | AgentOS entry point, registers all agents |
 | `app/config.yaml` | Quick prompts for each agent |
 | `agents/*.py` | Individual agent implementations |
+| `storage/client.py` | S3 client for Railway Buckets (boto3) |
+| `storage/tools.py` | S3Tools browsing toolkit (list, search, read, write) |
+| `infra/settings.py` | Infrastructure defaults (bucket name, region) |
 | `db/session.py` | `get_postgres_db()` helper for database connections |
 | `db/url.py` | Builds database URL from environment |
 | `compose.yaml` | Local development with Docker |
@@ -118,7 +126,11 @@ agent_db = get_postgres_db()
 # Database
 from db import db_url, get_postgres_db
 
+# Storage
+from storage import S3Tools, get_s3_client, bucket_name
+
 # Agents (import directly from module)
+from agents.scout import scout, scout_knowledge
 from agents.pal import pal
 from agents.knowledge_agent import knowledge_agent
 from agents.mcp_agent import mcp_agent
@@ -149,6 +161,7 @@ source .venv/bin/activate
 docker compose up -d --build
 
 # Test individual agents
+python -m agents.scout
 python -m agents.pal
 python -m agents.mcp_agent
 
@@ -169,7 +182,12 @@ Required:
 - `OPENAI_API_KEY`
 
 Optional:
-- `EXA_API_KEY` - Enables Pal's web research tools
+- `EXA_API_KEY` - Enables web research tools (Pal + Scout)
+- `S3_BUCKET` - Railway Bucket name (default: `agno-scout-public`)
+- `S3_REGION` - Bucket region (default: `us-east-1`)
+- `S3_ENDPOINT` - Bucket endpoint (auto-set for Railway Buckets)
+- `S3_ACCESS_KEY_ID` - Bucket access key (enables write access)
+- `S3_SECRET_ACCESS_KEY` - Bucket secret key (enables write access)
 - `DB_DRIVER` - Database driver (default: `postgresql+psycopg`)
 - `PORT` - API server port (default: `8000`)
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_DATABASE`
@@ -185,6 +203,11 @@ Optional:
 
 | Agent | Storage | Table/Location |
 |-------|---------|----------------|
+| Scout | Railway Bucket (documents) | S3-compatible via `storage/` |
+| Scout | PostgreSQL (vector embeddings) | `scout_knowledge` |
+| Scout | PostgreSQL (document contents) | `scout_contents` |
+| Scout | PostgreSQL (learnings embeddings) | `scout_learnings` |
+| Scout | PostgreSQL (learnings contents) | `scout_learnings_contents` |
 | Pal | DuckDB (user data) | `/data/pal.db` |
 | Pal | PostgreSQL (vector embeddings) | `pal_knowledge` |
 | Pal | PostgreSQL (document contents) | `pal_contents` |

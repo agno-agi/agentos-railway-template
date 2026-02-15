@@ -8,11 +8,12 @@ Deploy a multi-agent system to production on Railway.
 
 | Agent | Pattern | Description |
 |-------|---------|-------------|
+| **Scout** | S3 Browsing + Learning | Enterprise knowledge agent for document stores |
 | **Pal** | Learning + Tools | Your AI-powered second brain |
 | Knowledge Agent | RAG | Answers questions from a knowledge base |
 | MCP Agent | Tool Use | Connects to external services via MCP |
 
-**Pal** (Personal Agent that Learns) is your AI-powered second brain. It researches, captures, organizes, connects, and retrieves your personal knowledge - so nothing useful is ever lost.
+**Scout** is your enterprise librarian -- it navigates document stores, reads full documents, extracts answers, and remembers where things are. **Pal** (Personal Agent that Learns) is your AI-powered second brain -- it researches, captures, organizes, connects, and retrieves your personal knowledge.
 
 ## Quick Start
 
@@ -59,7 +60,7 @@ railway login
 ./scripts/railway_up.sh
 ```
 
-The script provisions PostgreSQL, configures environment variables, and deploys your application.
+The script provisions PostgreSQL, configures environment variables, and deploys your application. If you have a Railway Bucket named "storage" in the project, credentials are wired automatically.
 
 ### Connect to control plane
 
@@ -84,6 +85,34 @@ railway down --service pgvector
 ---
 
 ## The Agents
+
+### Scout (Enterprise Knowledge Agent)
+
+Your enterprise librarian. Scout navigates document stores (Railway Buckets), reads full documents, extracts the actual answer, and remembers where things are so repeated questions get faster, more accurate answers.
+
+**What Scout can find:**
+
+| Source | Contents |
+|--------|----------|
+| **company-docs** | HR policies, benefits guide, employee handbook |
+| **engineering-docs** | Architecture docs, deployment runbooks, incident response |
+| **data-exports** | Monthly metrics, reports, data exports |
+
+**Try it:**
+```
+What is our PTO policy?
+Find the deployment runbook
+What is the incident response process?
+How do I request access to production systems?
+```
+
+**How it works:**
+- **S3 Tools** navigate buckets, list files, search content, and read documents
+- **Two knowledge systems**: static (source registry, intent routing) + dynamic (learned discoveries)
+- **Intent routing** maps questions to the right document before searching
+- **Exa search** provides web research fallback (requires `EXA_API_KEY`)
+
+**Storage:** Railway Bucket (S3-compatible). Works out of the box with a public demo bucket. Link your own Railway Bucket for write access and custom documents.
 
 ### Pal (Personal Agent that Learns)
 
@@ -152,20 +181,26 @@ Find examples of agents with memory
 ## Project Structure
 ```
 ├── agents/
-│   ├── pal.py              # Personal second brain agent
-│   ├── knowledge_agent.py  # RAG agent
-│   └── mcp_agent.py        # MCP tools agent
+│   ├── scout.py             # Enterprise knowledge agent (S3 browsing)
+│   ├── pal.py               # Personal second brain agent
+│   ├── knowledge_agent.py   # RAG agent
+│   └── mcp_agent.py         # MCP tools agent
 ├── app/
-│   ├── main.py             # AgentOS entry point
-│   └── config.yaml         # Quick prompts config
+│   ├── main.py              # AgentOS entry point
+│   └── config.yaml          # Quick prompts config
+├── storage/
+│   ├── client.py            # S3 client (Railway Buckets / any S3-compatible)
+│   └── tools.py             # S3 browsing toolkit for agents
+├── infra/
+│   └── settings.py          # Infrastructure defaults (bucket, region)
 ├── db/
-│   ├── session.py          # PostgreSQL database helpers
-│   └── url.py              # Connection URL builder
-├── scripts/                # Helper scripts
-├── compose.yaml            # Docker Compose config
+│   ├── session.py           # PostgreSQL database helpers
+│   └── url.py               # Connection URL builder
+├── scripts/                 # Helper scripts
+├── compose.yaml             # Docker Compose config
 ├── Dockerfile
-├── railway.json            # Railway config
-└── pyproject.toml          # Dependencies
+├── railway.json             # Railway config
+└── pyproject.toml           # Dependencies
 ```
 
 ---
@@ -276,7 +311,12 @@ python -m app.main
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `OPENAI_API_KEY` | Yes | - | OpenAI API key |
-| `EXA_API_KEY` | No | - | Exa API key for web research (enables Pal's research tools) |
+| `EXA_API_KEY` | No | - | Exa API key for web research (Pal + Scout) |
+| `S3_BUCKET` | No | `agno-scout-public` | Railway Bucket name (auto-set when bucket is linked) |
+| `S3_REGION` | No | `us-east-1` | Bucket region |
+| `S3_ENDPOINT` | No | - | Bucket endpoint (auto-set for Railway Buckets) |
+| `S3_ACCESS_KEY_ID` | No | - | Bucket access key (enables write access) |
+| `S3_SECRET_ACCESS_KEY` | No | - | Bucket secret key (enables write access) |
 | `PORT` | No | `8000` | API server port |
 | `DB_HOST` | No | `localhost` | Database host |
 | `DB_PORT` | No | `5432` | Database port |
