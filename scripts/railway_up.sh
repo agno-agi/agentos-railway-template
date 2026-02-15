@@ -86,6 +86,26 @@ if [[ -n "$EXA_API_KEY" ]]; then
     railway variables --set "EXA_API_KEY=${EXA_API_KEY}" --service agent_os --skip-deploys
 fi
 
+# Add persistent volume for DuckDB data
+echo ""
+echo -e "${BOLD}Adding persistent volume...${NC}"
+echo ""
+railway volume add -m /data 2>/dev/null || echo -e "${DIM}Volume already exists or skipped${NC}"
+
+# Wire bucket credentials if a bucket exists in the project
+# NOTE: Create a bucket manually in the Railway dashboard first.
+#       Name the bucket service "storage" so the variable references work.
+echo ""
+echo -e "${BOLD}Wiring storage bucket...${NC}"
+echo -e "${DIM}If you have a bucket named 'storage' in this project, credentials will be linked.${NC}"
+echo -e "${DIM}To create one: Railway Dashboard -> Create -> Bucket -> name it 'storage'${NC}"
+echo ""
+railway variables --set 'S3_ENDPOINT=${{storage.ENDPOINT}}' --service agent_os --skip-deploys 2>/dev/null || true
+railway variables --set 'S3_BUCKET=${{storage.BUCKET}}' --service agent_os --skip-deploys 2>/dev/null || true
+railway variables --set 'S3_ACCESS_KEY_ID=${{storage.ACCESS_KEY_ID}}' --service agent_os --skip-deploys 2>/dev/null || true
+railway variables --set 'S3_SECRET_ACCESS_KEY=${{storage.SECRET_ACCESS_KEY}}' --service agent_os --skip-deploys 2>/dev/null || true
+railway variables --set 'S3_REGION=${{storage.REGION}}' --service agent_os --skip-deploys 2>/dev/null || true
+
 echo ""
 echo -e "${BOLD}Deploying application...${NC}"
 echo ""

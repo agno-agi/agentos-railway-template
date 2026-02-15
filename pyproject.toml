@@ -19,6 +19,8 @@ dependencies = [
   "psycopg[binary]",
   "sqlalchemy",
   "duckdb",
+  # Storage
+  "boto3",
   # Tools
   "mcp",
   "reportlab",
