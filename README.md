@@ -1,68 +1,59 @@
 # AgentOS Railway Template
 
-Deploy a multi-agent system to production on Railway.
-
-[What is AgentOS?](https://docs.agno.com/agent-os/introduction) · [Agno Docs](https://docs.agno.com) · [Discord](https://agno.com/discord)
+Deploy a multi-agent system on Railway.
 
 ## What's Included
 
 | Agent | Pattern | Description |
 |-------|---------|-------------|
-| **Scout** | S3 Browsing + Learning | Enterprise knowledge agent for document stores |
-| **Pal** | Learning + Tools | Your AI-powered second brain |
-| Knowledge Agent | RAG | Answers questions from a knowledge base |
-| MCP Agent | Tool Use | Connects to external services via MCP |
+| Scout | Agentic Search + Learning | Your enterprise librarian. Navigates document stores, reads full documents, extracts answers, and remembers where things are. |
+| Knowledge Agent | Agentic RAG | Answers questions from a knowledge base. |
+| MCP Agent | MCP Tool Use | Connects to external services via MCP. |
 
-**Scout** is your enterprise librarian -- it navigates document stores, reads full documents, extracts answers, and remembers where things are. **Pal** (Personal Agent that Learns) is your AI-powered second brain -- it researches, captures, organizes, connects, and retrieves your personal knowledge.
+## Get Started
 
-## Quick Start
-
-### Prerequisites
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- [OpenAI API key](https://platform.openai.com/api-keys)
-
-### 1. Clone and configure
 ```sh
+# Clone the repo
 git clone https://github.com/agno-agi/agentos-railway-template.git agentos-railway
 cd agentos-railway
 
+# Add OPENAI_API_KEY
 cp example.env .env
-# Add your OPENAI_API_KEY to .env
-```
+# Edit .env and add your key
 
-### 2. Start locally
-```sh
+# Start the application
 docker compose up -d --build
 ```
 
-- **API**: http://localhost:8000
-- **Docs**: http://localhost:8000/docs
-- **Database**: localhost:5432
+Confirm AgentOS is running at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-### 3. Connect to control plane
+### Connect to the Web UI
 
-1. Open [os.agno.com](https://os.agno.com)
-2. Click "Add OS" → "Local"
-3. Enter `http://localhost:8000`
+1. Open [os.agno.com](https://os.agno.com) and login
+2. Add OS → Local → `http://localhost:8000`
+3. Click "Connect"
+
+**Try it:**
+
+Click on **Scout**:
+- What is our PTO policy?
+- Where is the deployment runbook
 
 ## Deploy to Railway
 
-### Prerequisites
-
+Requires:
 - [Railway CLI](https://docs.railway.com/guides/cli)
 - `OPENAI_API_KEY` set in your environment
 
-### Deploy
-
 ```sh
 railway login
+
 ./scripts/railway_up.sh
 ```
 
-The script provisions PostgreSQL, configures environment variables, and deploys your application. If you have a Railway Bucket named "storage" in the project, credentials are wired automatically.
+The script provisions PostgreSQL, configures environment variables, and deploys your application.
 
-### Connect to control plane
+### Connect to the Web UI
 
 1. Open [os.agno.com](https://os.agno.com)
 2. Click "Add OS" → "Live"
@@ -71,32 +62,30 @@ The script provisions PostgreSQL, configures environment variables, and deploys 
 ### Manage deployment
 
 ```sh
-railway logs --service agent_os      # View logs
+railway logs --service agent-os      # View logs
 railway open                         # Open dashboard
-railway up --service agent_os -d     # Update after changes
+railway up --service agent-os -d     # Update after changes
 ```
 
 To stop services:
 ```sh
-railway down --service agent_os
+railway down --service agent-os
 railway down --service pgvector
 ```
-
----
 
 ## The Agents
 
 ### Scout (Enterprise Knowledge Agent)
 
-Your enterprise librarian. Scout navigates document stores (Railway Buckets), reads full documents, extracts the actual answer, and remembers where things are so repeated questions get faster, more accurate answers.
+Your enterprise librarian. Scout navigates a local documents directory, reads full documents, extracts the actual answer, and remembers where things are so repeated questions get faster, more accurate answers.
 
-**What Scout can find:**
+Ships with sample documents. Add your own to `documents/`.
 
-| Source | Contents |
-|--------|----------|
+| Directory | Contents |
+|-----------|----------|
 | **company-docs** | HR policies, benefits guide, employee handbook |
 | **engineering-docs** | Architecture docs, deployment runbooks, incident response |
-| **data-exports** | Monthly metrics, reports, data exports |
+| **data-exports** | Metrics, reports, data exports |
 
 **Try it:**
 ```
@@ -107,56 +96,17 @@ How do I request access to production systems?
 ```
 
 **How it works:**
-- **S3 Tools** navigate buckets, list files, search content, and read documents
+- **FileTools + content search** navigate directories, list files, search content, and read documents
 - **Two knowledge systems**: static (source registry, intent routing) + dynamic (learned discoveries)
 - **Intent routing** maps questions to the right document before searching
 - **Exa search** provides web research fallback (requires `EXA_API_KEY`)
 
-**Storage:** Railway Bucket (S3-compatible). Works out of the box with a public demo bucket. Link your own Railway Bucket for write access and custom documents.
-
-### Pal (Personal Agent that Learns)
-
-Your AI-powered second brain. Pal researches, captures, organizes, connects, and retrieves your personal knowledge - so nothing useful is ever lost.
-
-**What Pal stores:**
-
-| Type | Examples |
-|------|----------|
-| **Notes** | Ideas, decisions, snippets, learnings |
-| **Bookmarks** | URLs with context - why you saved it |
-| **People** | Contacts - who they are, how you know them |
-| **Meetings** | Notes, decisions, action items |
-| **Projects** | Goals, status, related items |
-| **Research** | Findings from web search, saved for later |
-
-**Try it:**
-```
-Note: decided to use Postgres for the new project - better JSON support
-Bookmark https://www.ashpreetbedi.com/articles/lm-technical-design - great intro
-Research event sourcing patterns and save the key findings
-What notes do I have?
-What do I know about event sourcing?
-```
-
-**How it works:**
-- **DuckDB** stores your actual data (notes, bookmarks, people, etc.)
-- **Learning system** remembers schemas and research findings
-- **Exa search** powers web research, company lookup, and people search
-
-**Data persistence:** Pal stores structured data in DuckDB at `/data/pal.db`. This persists across container restarts.
-
 ### Knowledge Agent
 
-Answers questions using a vector knowledge base (RAG pattern).
-
-**Try it:**
-```
-What is Agno?
-How do I create my first agent?
-What documents are in your knowledge base?
-```
+Answers questions using hybrid search over a vector database (Agentic RAG).
 
 **Load documents:**
+
 ```sh
 # Local
 docker exec -it agentos-api python -m agents.knowledge_agent
@@ -165,34 +115,46 @@ docker exec -it agentos-api python -m agents.knowledge_agent
 railway run python -m agents.knowledge_agent
 ```
 
+**Try it:**
+
+```
+What is Agno?
+How do I create my first agent?
+What documents are in your knowledge base?
+```
+
 ### MCP Agent
 
 Connects to external tools via the Model Context Protocol.
 
 **Try it:**
+
 ```
 What tools do you have access to?
 Search the docs for how to use LearningMachine
 Find examples of agents with memory
 ```
 
----
 
 ## Project Structure
 ```
-├── agents/
-│   ├── scout.py             # Enterprise knowledge agent (S3 browsing)
-│   ├── pal.py               # Personal second brain agent
-│   ├── knowledge_agent.py   # RAG agent
-│   └── mcp_agent.py         # MCP tools agent
+├── scout/                   # Enterprise knowledge agent (top-level package)
+│   ├── agent.py             # Agent definition
+│   ├── paths.py             # Path resolution (documents dir, knowledge dirs)
+│   ├── context/             # System prompt builders
+│   ├── tools/               # Awareness, search, discovery tools
+│   ├── knowledge/           # Static knowledge files (JSON, Markdown)
+│   └── scripts/             # Knowledge loading scripts
+├── agents/                  # Other agents
+│   ├── knowledge_agent.py   # Agentic RAG
+│   └── mcp_agent.py         # MCP Tool Use
 ├── app/
 │   ├── main.py              # AgentOS entry point
 │   └── config.yaml          # Quick prompts config
-├── storage/
-│   ├── client.py            # S3 client (Railway Buckets / any S3-compatible)
-│   └── tools.py             # S3 browsing toolkit for agents
-├── infra/
-│   └── settings.py          # Infrastructure defaults (bucket, region)
+├── documents/               # Enterprise documents
+│   ├── company-docs/        # Policies, HR, planning
+│   ├── engineering-docs/    # Runbooks, architecture
+│   └── data-exports/        # Reports, metrics
 ├── db/
 │   ├── session.py           # PostgreSQL database helpers
 │   └── url.py               # Connection URL builder
@@ -202,8 +164,6 @@ Find examples of agents with memory
 ├── railway.json             # Railway config
 └── pyproject.toml           # Dependencies
 ```
-
----
 
 ## Common Tasks
 
@@ -232,7 +192,7 @@ from agents.my_agent import my_agent
 
 agent_os = AgentOS(
     name="AgentOS",
-    agents=[pal, knowledge_agent, mcp_agent, my_agent],
+    agents=[scout, knowledge_agent, mcp_agent, my_agent],
     ...
 )
 ```
@@ -274,17 +234,6 @@ model=Claude(id="claude-sonnet-4-5")
 ```
 3. Add dependency: `anthropic` in `pyproject.toml`
 
-### Scale on Railway
-
-Edit `railway.json`:
-```json
-{
-  "deploy": {
-    "numReplicas": 2
-  }
-}
-```
-
 ---
 
 ## Local Development
@@ -311,26 +260,18 @@ python -m app.main
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `OPENAI_API_KEY` | Yes | - | OpenAI API key |
-| `EXA_API_KEY` | No | - | Exa API key for web research (Pal + Scout) |
-| `S3_BUCKET` | No | `agno-scout-public` | Railway Bucket name (auto-set when bucket is linked) |
-| `S3_REGION` | No | `us-east-1` | Bucket region |
-| `S3_ENDPOINT` | No | - | Bucket endpoint (auto-set for Railway Buckets) |
-| `S3_ACCESS_KEY_ID` | No | - | Bucket access key (enables write access) |
-| `S3_SECRET_ACCESS_KEY` | No | - | Bucket secret key (enables write access) |
+| `EXA_API_KEY` | No | - | Exa API key for web research |
+| `DOCUMENTS_DIR` | No | `./documents` | Directory for documents (`/documents` in Docker) |
 | `PORT` | No | `8000` | API server port |
 | `DB_HOST` | No | `localhost` | Database host |
 | `DB_PORT` | No | `5432` | Database port |
 | `DB_USER` | No | `ai` | Database user |
 | `DB_PASS` | No | `ai` | Database password |
 | `DB_DATABASE` | No | `ai` | Database name |
-| `DATA_DIR` | No | `/data` | Directory for DuckDB storage |
 | `RUNTIME_ENV` | No | `prd` | Set to `dev` for auto-reload |
-
----
 
 ## Learn More
 
 - [Agno Documentation](https://docs.agno.com)
 - [AgentOS Documentation](https://docs.agno.com/agent-os/introduction)
-- [Tools & Integrations](https://docs.agno.com/tools/toolkits)
-- [Discord Community](https://agno.com/discord)
+- [Agno Discord](https://agno.com/discord)

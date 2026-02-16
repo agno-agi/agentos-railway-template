@@ -1,6 +1,6 @@
 """
 App Module
-==========
+----------
 
 AgentOS application entry point.
 """

@@ -1,6 +1,6 @@
 """
 AgentOS
-=======
+-------
 
 The main entry point for AgentOS.
 
@@ -15,19 +15,18 @@ from agno.os import AgentOS
 
 from agents.knowledge_agent import knowledge_agent
 from agents.mcp_agent import mcp_agent
-from agents.pal import pal, pal_knowledge
-from agents.scout import scout, scout_knowledge
 from db import get_postgres_db
+from scout import scout
 
-# ============================================================================
+# ---------------------------------------------------------------------------
 # Create AgentOS
-# ============================================================================
+# ---------------------------------------------------------------------------
 agent_os = AgentOS(
     name="AgentOS",
     tracing=True,
+    scheduler=True,
     db=get_postgres_db(),
-    agents=[pal, knowledge_agent, mcp_agent, scout],
-    knowledge=[pal_knowledge, scout_knowledge],
+    agents=[scout, knowledge_agent, mcp_agent],
     config=str(Path(__file__).parent / "config.yaml"),
 )
 

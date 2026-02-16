@@ -10,8 +10,13 @@ AgentOS - A multi-agent system built on the Agno framework, deployable to Railwa
 
 ```
 AgentOS (app/main.py)
-├── Scout Agent (agents/scout.py)                # Enterprise knowledge via S3 browsing
-├── Pal Agent (agents/pal.py)                    # Personal second brain with learning
+├── Scout Agent (scout/)                         # Enterprise knowledge via local file browsing
+│   ├── agent.py                                 # Main agent definition
+│   ├── paths.py                                 # Path resolution (documents dir, knowledge dirs)
+│   ├── context/                                 # System prompt builders (source registry, intent routing)
+│   ├── tools/                                   # Awareness, search, and discovery tools
+│   ├── knowledge/                               # Static knowledge files (JSON, Markdown)
+│   └── scripts/                                 # Knowledge loading scripts
 ├── Knowledge Agent (agents/knowledge_agent.py)  # RAG-based Q&A
 └── MCP Agent (agents/mcp_agent.py)              # External tools via MCP
 ```
@@ -22,7 +27,7 @@ All agents share:
 - Chat history and context management
 
 Scout additionally uses:
-- Railway Buckets (S3-compatible) via `storage/` module
+- Local documents directory (`documents/`) via `scout/paths.py`
 - Two knowledge bases (static routing + dynamic discoveries)
 
 ## Key Files
@@ -31,10 +36,17 @@ Scout additionally uses:
 |------|---------|
 | `app/main.py` | AgentOS entry point, registers all agents |
 | `app/config.yaml` | Quick prompts for each agent |
-| `agents/*.py` | Individual agent implementations |
-| `storage/client.py` | S3 client for Railway Buckets (boto3) |
-| `storage/tools.py` | S3Tools browsing toolkit (list, search, read, write) |
-| `infra/settings.py` | Infrastructure defaults (bucket name, region) |
+| `scout/agent.py` | Scout agent definition (knowledge, learning, tools) |
+| `scout/paths.py` | Path resolution (documents dir, knowledge dirs) |
+| `scout/context/` | Context builders: source registry + intent routing for system prompt |
+| `scout/tools/awareness.py` | `list_sources` (static registry) + `get_metadata` (pathlib) |
+| `scout/tools/search.py` | `search_content` grep-like content search |
+| `scout/tools/save_discovery.py` | Save intent discoveries to knowledge base |
+| `scout/knowledge/` | Static knowledge files (sources, routing rules, search patterns) |
+| `scout/scripts/load_knowledge.py` | Load knowledge files into vector DB |
+| `agents/knowledge_agent.py` | Knowledge Agent implementation |
+| `agents/mcp_agent.py` | MCP Agent implementation |
+| `documents/` | Sample enterprise documents (committed to git) |
 | `db/session.py` | `get_postgres_db()` helper for database connections |
 | `db/url.py` | Builds database URL from environment |
 | `compose.yaml` | Local development with Docker |
@@ -126,12 +138,11 @@ agent_db = get_postgres_db()
 # Database
 from db import db_url, get_postgres_db
 
-# Storage
-from storage import S3Tools, get_s3_client, bucket_name
+# Scout (top-level package)
+from scout import scout, scout_knowledge, scout_learnings
+from scout.paths import DOCUMENTS_DIR
 
-# Agents (import directly from module)
-from agents.scout import scout, scout_knowledge
-from agents.pal import pal
+# Other agents
 from agents.knowledge_agent import knowledge_agent
 from agents.mcp_agent import mcp_agent
 ```
@@ -144,7 +155,7 @@ from agents.mcp_agent import mcp_agent
    from agents.new_agent import new_agent
 
    agent_os = AgentOS(
-       agents=[pal, knowledge_agent, mcp_agent, new_agent],
+       agents=[scout, knowledge_agent, mcp_agent, new_agent],
        ...
    )
    ```
@@ -161,9 +172,12 @@ source .venv/bin/activate
 docker compose up -d --build
 
 # Test individual agents
-python -m agents.scout
-python -m agents.pal
+python -m scout
 python -m agents.mcp_agent
+
+# Load Scout knowledge into vector DB
+python -m scout.scripts.load_knowledge
+python -m scout.scripts.load_knowledge --recreate
 
 # Load documents into knowledge agent
 python -m agents.knowledge_agent
@@ -182,16 +196,11 @@ Required:
 - `OPENAI_API_KEY`
 
 Optional:
-- `EXA_API_KEY` - Enables web research tools (Pal + Scout)
-- `S3_BUCKET` - Railway Bucket name (default: `agno-scout-public`)
-- `S3_REGION` - Bucket region (default: `us-east-1`)
-- `S3_ENDPOINT` - Bucket endpoint (auto-set for Railway Buckets)
-- `S3_ACCESS_KEY_ID` - Bucket access key (enables write access)
-- `S3_SECRET_ACCESS_KEY` - Bucket secret key (enables write access)
+- `EXA_API_KEY` - Enables web research tools (Scout)
+- `DOCUMENTS_DIR` - Documents directory (default: `./documents`, `/documents` in Docker)
 - `DB_DRIVER` - Database driver (default: `postgresql+psycopg`)
 - `PORT` - API server port (default: `8000`)
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_DATABASE`
-- `DATA_DIR` - DuckDB storage location (default: `/data`)
 - `RUNTIME_ENV` - Set to `dev` for auto-reload
 
 ## Ports
@@ -203,14 +212,9 @@ Optional:
 
 | Agent | Storage | Table/Location |
 |-------|---------|----------------|
-| Scout | Railway Bucket (documents) | S3-compatible via `storage/` |
+| Scout | Local Files (`documents/`) | Documents via `scout/paths.py` |
 | Scout | PostgreSQL (vector embeddings) | `scout_knowledge` |
-| Scout | PostgreSQL (document contents) | `scout_contents` |
 | Scout | PostgreSQL (learnings embeddings) | `scout_learnings` |
-| Scout | PostgreSQL (learnings contents) | `scout_learnings_contents` |
-| Pal | DuckDB (user data) | `/data/pal.db` |
-| Pal | PostgreSQL (vector embeddings) | `pal_knowledge` |
-| Pal | PostgreSQL (document contents) | `pal_contents` |
 | Knowledge Agent | PostgreSQL (vector embeddings) | `knowledge_agent_docs` |
 | Knowledge Agent | PostgreSQL (document contents) | `knowledge_agent_contents` |
 | All | PostgreSQL | Session/memory tables (automatic) |

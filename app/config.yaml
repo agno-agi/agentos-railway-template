@@ -2,12 +2,8 @@ chat:
   quick_prompts:
     scout:
       - "What is our PTO policy?"
-      - "Find the deployment runbook"
+      - "Where is the deployment runbook?"
       - "What documents do you have access to?"
-    pal:
-      - "Tell me about yourself"
-      - "Note: decided to use Postgres for the new project"
-      - "Research event sourcing patterns and save the key findings"
     knowledge-agent:
       - "What is Agno?"
       - "How do I create my first agent?"

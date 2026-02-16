@@ -7,25 +7,13 @@ license-files = ["LICENSE"]
 authors = [{ name = "Agno", email = "hello@agno.com" }]
 
 dependencies = [
-  # Agno
   "agno",
-  "agno-infra",
-  # API
   "fastapi[standard]",
-  # Models
   "openai",
-  # Database
   "pgvector",
   "psycopg[binary]",
   "sqlalchemy",
-  "duckdb",
-  # Storage
-  "boto3",
-  # Tools
   "mcp",
-  "reportlab",
-  "duckduckgo-search",
-  # Tracing
   "opentelemetry-api",
   "opentelemetry-sdk",
   "openinference-instrumentation-agno",
@@ -39,6 +27,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
+include = ["scout*", "agents*", "db*", "app*"]
 
 [tool.ruff]
 line-length = 120
@@ -55,7 +44,7 @@ plugins = ["pydantic.mypy"]
 exclude = [".venv*"]
 
 [[tool.mypy.overrides]]
-module = ["pgvector.*", "setuptools.*", "agno.*", "duckdb.*"]
+module = ["pgvector.*", "setuptools.*", "agno.*", "httpx.*", "mcp.*"]
 ignore_missing_imports = true
 
 [tool.uv.pip]
