@@ -1,8 +1,8 @@
 """
 MCP Agent
-=========
+---------
 
-An agent that uses MCP tools to answer questions.
+An agent that uses MCP to answer questions.
 
 Test:
     python -m agents.mcp_agent
@@ -14,14 +14,14 @@ from agno.tools.mcp import MCPTools
 
 from db import get_postgres_db
 
-# ============================================================================
+# ---------------------------------------------------------------------------
 # Setup
-# ============================================================================
+# ---------------------------------------------------------------------------
 agent_db = get_postgres_db()
 
-# ============================================================================
+# ---------------------------------------------------------------------------
 # Agent Instructions
-# ============================================================================
+# ---------------------------------------------------------------------------
 instructions = """\
 You are a helpful assistant with access to external tools via MCP (Model Context Protocol).
 
@@ -40,9 +40,9 @@ You are a helpful assistant with access to external tools via MCP (Model Context
 - If you're unsure which tool to use, ask for clarification
 """
 
-# ============================================================================
+# ---------------------------------------------------------------------------
 # Create Agent
-# ============================================================================
+# ---------------------------------------------------------------------------
 mcp_agent = Agent(
     id="mcp-agent",
     name="MCP Agent",
@@ -59,4 +59,4 @@ mcp_agent = Agent(
 )
 
 if __name__ == "__main__":
-    mcp_agent.print_response("What tools do you have access to?", stream=True)
+    mcp_agent.print_response("What is Agno?", stream=True)

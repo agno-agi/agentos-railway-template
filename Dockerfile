@@ -1,30 +1,34 @@
 FROM agnohq/python:3.12
 
-# Environment variables that actually matter
+# ---------------------------------------------------------------------------
+# Environment
+# ---------------------------------------------------------------------------
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app
 
-ARG USER=app
-ARG APP_DIR=/app
-ARG DATA_DIR=/data
+# ---------------------------------------------------------------------------
+# Create non-root user
+# ---------------------------------------------------------------------------
+RUN groupadd -g 61000 app \
+    && useradd -g 61000 -u 61000 -ms /bin/bash app
 
-# Create user
-RUN groupadd -g 61000 ${USER} \
-    && useradd -g 61000 -u 61000 -ms /bin/bash -d ${APP_DIR} ${USER} \
-    && mkdir -p ${DATA_DIR} \
-    && chown -R ${USER}:${USER} ${DATA_DIR}
+# ---------------------------------------------------------------------------
+# Application code
+# ---------------------------------------------------------------------------
+WORKDIR /app
 
-WORKDIR ${APP_DIR}
-
-# Install dependencies first (better layer caching)
 COPY requirements.txt ./
 RUN uv pip sync requirements.txt --system
 
-# Copy app code
-COPY --chown=${USER}:${USER} . .
+COPY --chown=app:app . .
 
-USER ${USER}
+# ---------------------------------------------------------------------------
+# Entrypoint
+# ---------------------------------------------------------------------------
+RUN chmod +x /app/scripts/entrypoint.sh
+
+USER app
 
 EXPOSE 8000
 

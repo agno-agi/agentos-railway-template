@@ -1,9 +1,5 @@
 chat:
   quick_prompts:
-    pal:
-      - "Tell me about yourself"
-      - "Note: decided to use Postgres for the new project"
-      - "Research event sourcing patterns and save the key findings"
     knowledge-agent:
       - "What is Agno?"
       - "How do I create my first agent?"

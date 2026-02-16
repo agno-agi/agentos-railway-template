@@ -54,7 +54,7 @@ fi
 
 echo -e "${BOLD}Initializing project...${NC}"
 echo ""
-railway init -n "agno"
+railway init -n "agent-os"
 
 echo ""
 echo -e "${BOLD}Deploying PgVector database...${NC}"
@@ -68,7 +68,7 @@ sleep 10
 echo ""
 echo -e "${BOLD}Creating application service...${NC}"
 echo ""
-railway add --service agent_os \
+railway add --service agent-os \
     --variables 'DB_USER=${{pgvector.PGUSER}}' \
     --variables 'DB_PASS=${{pgvector.PGPASSWORD}}' \
     --variables 'DB_HOST=${{pgvector.PGHOST}}' \
@@ -76,27 +76,20 @@ railway add --service agent_os \
     --variables 'DB_DATABASE=${{pgvector.PGDATABASE}}' \
     --variables "DB_DRIVER=postgresql+psycopg" \
     --variables "WAIT_FOR_DB=True" \
-    --variables "DATA_DIR=/data" \
     --variables "OPENAI_API_KEY=${OPENAI_API_KEY}" \
     --variables "PORT=8000"
-
-# Add optional EXA_API_KEY if set
-if [[ -n "$EXA_API_KEY" ]]; then
-    echo -e "${DIM}Adding EXA_API_KEY...${NC}"
-    railway variables --set "EXA_API_KEY=${EXA_API_KEY}" --service agent_os --skip-deploys
-fi
 
 echo ""
 echo -e "${BOLD}Deploying application...${NC}"
 echo ""
-railway up --service agent_os -d
+railway up --service agent-os -d
 
 echo ""
 echo -e "${BOLD}Creating domain...${NC}"
 echo ""
-railway domain --service agent_os
+railway domain --service agent-os
 
 echo ""
 echo -e "${BOLD}Done.${NC} Domain may take ~5 minutes."
-echo -e "${DIM}Logs: railway logs --service agent_os${NC}"
+echo -e "${DIM}Logs: railway logs --service agent-os${NC}"
 echo ""
