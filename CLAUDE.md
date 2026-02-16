@@ -4,7 +4,7 @@ This file provides context for Claude Code when working with this repository.
 
 ## Project Overview
 
-AgentOS - A multi-agent system built by Agno, deployable to Railway.
+AgentOS - A multi-agent system built by Agno.
 
 ## Architecture
 
@@ -30,7 +30,6 @@ All agents share:
 | `db/session.py` | `get_postgres_db()` and `create_knowledge()` helpers |
 | `db/url.py` | Builds database URL from environment |
 | `compose.yaml` | Local development with Docker |
-| `railway.json` | Railway deployment config |
 
 ## Development Setup
 
@@ -144,9 +143,6 @@ python -m agents.knowledge_agent
 # Format & validation (run from activated venv)
 ./scripts/format.sh
 ./scripts/validate.sh
-
-# Deploy to Railway
-./scripts/railway_up.sh
 ```
 
 ## Environment Variables
@@ -162,7 +158,7 @@ Optional:
 
 ## Ports
 
-- API: 8000 (both Dockerfile and railway.json)
+- API: 8000
 - Database: 5432
 
 ## Data Storage
@@ -268,19 +264,11 @@ PgVector (used here), ChromaDB, LanceDB, Pinecone, Qdrant, Weaviate, Milvus, Red
 For agents that learn and improve over time:
 
 ```python
-from agno.learn import (
-    LearningMachine,
-    LearningMode,
-    LearnedKnowledgeConfig,
-    UserMemoryConfig,
-    UserProfileConfig,
-)
+from agno.learn import LearningMachine, LearningMode, LearnedKnowledgeConfig
 
 agent = Agent(
     learning=LearningMachine(
         knowledge=my_knowledge_base,
-        user_profile=UserProfileConfig(mode=LearningMode.AGENTIC),
-        user_memory=UserMemoryConfig(mode=LearningMode.AGENTIC),
         learned_knowledge=LearnedKnowledgeConfig(mode=LearningMode.AGENTIC),
     ),
     ...
