@@ -73,7 +73,7 @@ sqlalchemy==2.0.46
 sse-starlette==3.2.0
 starlette==0.52.1
 tqdm==4.67.3
-typer==0.23.1
+typer==0.23.2
 typing-extensions==4.15.0
 typing-inspection==0.4.2
 urllib3==2.6.3
