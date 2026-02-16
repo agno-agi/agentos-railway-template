@@ -2,7 +2,7 @@
 MCP Agent
 ---------
 
-An agent that uses MCP tools to answer questions.
+An agent that uses MCP to answer questions.
 
 Test:
     python -m agents.mcp_agent
@@ -59,4 +59,4 @@ mcp_agent = Agent(
 )
 
 if __name__ == "__main__":
-    mcp_agent.print_response("What tools do you have access to?", stream=True)
+    mcp_agent.print_response("What is Agno?", stream=True)

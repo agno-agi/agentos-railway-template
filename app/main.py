@@ -16,7 +16,6 @@ from agno.os import AgentOS
 from agents.knowledge_agent import knowledge_agent
 from agents.mcp_agent import mcp_agent
 from db import get_postgres_db
-from scout import scout
 
 # ---------------------------------------------------------------------------
 # Create AgentOS
@@ -26,7 +25,7 @@ agent_os = AgentOS(
     tracing=True,
     scheduler=True,
     db=get_postgres_db(),
-    agents=[scout, knowledge_agent, mcp_agent],
+    agents=[knowledge_agent, mcp_agent],
     config=str(Path(__file__).parent / "config.yaml"),
 )
 

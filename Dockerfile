@@ -24,12 +24,6 @@ RUN uv pip sync requirements.txt --system
 COPY --chown=app:app . .
 
 # ---------------------------------------------------------------------------
-# Document seeding: copy sample docs so /documents can be seeded on first run
-# ---------------------------------------------------------------------------
-RUN mkdir -p /app/documents-seed && cp -r /app/documents/* /app/documents-seed/ 2>/dev/null || true
-RUN mkdir -p /documents && chown app:app /documents
-
-# ---------------------------------------------------------------------------
 # Entrypoint
 # ---------------------------------------------------------------------------
 RUN chmod +x /app/scripts/entrypoint.sh

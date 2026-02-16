@@ -26,8 +26,6 @@ services:
     volumes:
       # Hot-reload: mount source code
       - .:/app
-      # Documents directory
-      - ./documents:/documents
     environment:
       - RUNTIME_ENV=dev
       - AGNO_DEBUG=True
@@ -42,9 +40,6 @@ services:
       - PRINT_ENV_ON_LOAD=True
       # API keys
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - EXA_API_KEY=${EXA_API_KEY:-}
-      # Storage
-      - DOCUMENTS_DIR=/documents
     depends_on:
       - agentos-db
     networks:

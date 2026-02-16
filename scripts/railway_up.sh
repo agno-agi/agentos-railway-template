@@ -77,14 +77,7 @@ railway add --service agent-os \
     --variables "DB_DRIVER=postgresql+psycopg" \
     --variables "WAIT_FOR_DB=True" \
     --variables "OPENAI_API_KEY=${OPENAI_API_KEY}" \
-    --variables "DOCUMENTS_DIR=/documents" \
     --variables "PORT=8000"
-
-# Add optional EXA_API_KEY if set
-if [[ -n "$EXA_API_KEY" ]]; then
-    echo -e "${DIM}Adding EXA_API_KEY...${NC}"
-    railway variables --set "EXA_API_KEY=${EXA_API_KEY}" --service agent-os --skip-deploys
-fi
 
 echo ""
 echo -e "${BOLD}Deploying application...${NC}"

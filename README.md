@@ -6,7 +6,6 @@ Deploy a multi-agent system on Railway.
 
 | Agent | Pattern | Description |
 |-------|---------|-------------|
-| Scout | Agentic Search + Learning | Your enterprise librarian. Navigates document stores, reads full documents, extracts answers, and remembers where things are. |
 | Knowledge Agent | Agentic RAG | Answers questions from a knowledge base. |
 | MCP Agent | MCP Tool Use | Connects to external services via MCP. |
 
@@ -23,6 +22,9 @@ cp example.env .env
 
 # Start the application
 docker compose up -d --build
+
+# Load documents for the knowledge agent
+docker exec -it agentos-api python -m agents.knowledge_agent
 ```
 
 Confirm AgentOS is running at [http://localhost:8000/docs](http://localhost:8000/docs).
@@ -32,12 +34,6 @@ Confirm AgentOS is running at [http://localhost:8000/docs](http://localhost:8000
 1. Open [os.agno.com](https://os.agno.com) and login
 2. Add OS → Local → `http://localhost:8000`
 3. Click "Connect"
-
-**Try it:**
-
-Click on **Scout**:
-- What is our PTO policy?
-- Where is the deployment runbook
 
 ## Deploy to Railway
 
@@ -74,32 +70,6 @@ railway down --service pgvector
 ```
 
 ## The Agents
-
-### Scout (Enterprise Knowledge Agent)
-
-Your enterprise librarian. Scout navigates a local documents directory, reads full documents, extracts the actual answer, and remembers where things are so repeated questions get faster, more accurate answers.
-
-Ships with sample documents. Add your own to `documents/`.
-
-| Directory | Contents |
-|-----------|----------|
-| **company-docs** | HR policies, benefits guide, employee handbook |
-| **engineering-docs** | Architecture docs, deployment runbooks, incident response |
-| **data-exports** | Metrics, reports, data exports |
-
-**Try it:**
-```
-What is our PTO policy?
-Find the deployment runbook
-What is the incident response process?
-How do I request access to production systems?
-```
-
-**How it works:**
-- **FileTools + content search** navigate directories, list files, search content, and read documents
-- **Two knowledge systems**: static (source registry, intent routing) + dynamic (learned discoveries)
-- **Intent routing** maps questions to the right document before searching
-- **Exa search** provides web research fallback (requires `EXA_API_KEY`)
 
 ### Knowledge Agent
 
@@ -138,23 +108,12 @@ Find examples of agents with memory
 
 ## Project Structure
 ```
-├── scout/                   # Enterprise knowledge agent (top-level package)
-│   ├── agent.py             # Agent definition
-│   ├── paths.py             # Path resolution (documents dir, knowledge dirs)
-│   ├── context/             # System prompt builders
-│   ├── tools/               # Awareness, search, discovery tools
-│   ├── knowledge/           # Static knowledge files (JSON, Markdown)
-│   └── scripts/             # Knowledge loading scripts
-├── agents/                  # Other agents
+├── agents/                  # Agents
 │   ├── knowledge_agent.py   # Agentic RAG
 │   └── mcp_agent.py         # MCP Tool Use
 ├── app/
 │   ├── main.py              # AgentOS entry point
 │   └── config.yaml          # Quick prompts config
-├── documents/               # Enterprise documents
-│   ├── company-docs/        # Policies, HR, planning
-│   ├── engineering-docs/    # Runbooks, architecture
-│   └── data-exports/        # Reports, metrics
 ├── db/
 │   ├── session.py           # PostgreSQL database helpers
 │   └── url.py               # Connection URL builder
@@ -192,7 +151,7 @@ from agents.my_agent import my_agent
 
 agent_os = AgentOS(
     name="AgentOS",
-    agents=[scout, knowledge_agent, mcp_agent, my_agent],
+    agents=[knowledge_agent, mcp_agent, my_agent],
     ...
 )
 ```
@@ -260,8 +219,6 @@ python -m app.main
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `OPENAI_API_KEY` | Yes | - | OpenAI API key |
-| `EXA_API_KEY` | No | - | Exa API key for web research |
-| `DOCUMENTS_DIR` | No | `./documents` | Directory for documents (`/documents` in Docker) |
 | `PORT` | No | `8000` | API server port |
 | `DB_HOST` | No | `localhost` | Database host |
 | `DB_PORT` | No | `5432` | Database port |

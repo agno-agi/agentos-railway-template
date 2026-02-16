@@ -1,9 +1,5 @@
 chat:
   quick_prompts:
-    scout:
-      - "What is our PTO policy?"
-      - "Where is the deployment runbook?"
-      - "What documents do you have access to?"
     knowledge-agent:
       - "What is Agno?"
       - "How do I create my first agent?"

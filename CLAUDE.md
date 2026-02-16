@@ -4,19 +4,12 @@ This file provides context for Claude Code when working with this repository.
 
 ## Project Overview
 
-AgentOS - A multi-agent system built on the Agno framework, deployable to Railway.
+AgentOS - A multi-agent system built by Agno, deployable to Railway.
 
 ## Architecture
 
 ```
 AgentOS (app/main.py)
-├── Scout Agent (scout/)                         # Enterprise knowledge via local file browsing
-│   ├── agent.py                                 # Main agent definition
-│   ├── paths.py                                 # Path resolution (documents dir, knowledge dirs)
-│   ├── context/                                 # System prompt builders (source registry, intent routing)
-│   ├── tools/                                   # Awareness, search, and discovery tools
-│   ├── knowledge/                               # Static knowledge files (JSON, Markdown)
-│   └── scripts/                                 # Knowledge loading scripts
 ├── Knowledge Agent (agents/knowledge_agent.py)  # RAG-based Q&A
 └── MCP Agent (agents/mcp_agent.py)              # External tools via MCP
 ```
@@ -26,28 +19,15 @@ All agents share:
 - OpenAI GPT-5.2 model
 - Chat history and context management
 
-Scout additionally uses:
-- Local documents directory (`documents/`) via `scout/paths.py`
-- Two knowledge bases (static routing + dynamic discoveries)
-
 ## Key Files
 
 | File | Purpose |
 |------|---------|
 | `app/main.py` | AgentOS entry point, registers all agents |
 | `app/config.yaml` | Quick prompts for each agent |
-| `scout/agent.py` | Scout agent definition (knowledge, learning, tools) |
-| `scout/paths.py` | Path resolution (documents dir, knowledge dirs) |
-| `scout/context/` | Context builders: source registry + intent routing for system prompt |
-| `scout/tools/awareness.py` | `list_sources` (static registry) + `get_metadata` (pathlib) |
-| `scout/tools/search.py` | `search_content` grep-like content search |
-| `scout/tools/save_discovery.py` | Save intent discoveries to knowledge base |
-| `scout/knowledge/` | Static knowledge files (sources, routing rules, search patterns) |
-| `scout/scripts/load_knowledge.py` | Load knowledge files into vector DB |
 | `agents/knowledge_agent.py` | Knowledge Agent implementation |
 | `agents/mcp_agent.py` | MCP Agent implementation |
-| `documents/` | Sample enterprise documents (committed to git) |
-| `db/session.py` | `get_postgres_db()` helper for database connections |
+| `db/session.py` | `get_postgres_db()` and `create_knowledge()` helpers |
 | `db/url.py` | Builds database URL from environment |
 | `compose.yaml` | Local development with Docker |
 | `railway.json` | Railway deployment config |
@@ -96,7 +76,6 @@ my_agent = Agent(
     # Context options (all agents use these)
     add_datetime_to_context=True,
     add_history_to_context=True,
-    read_chat_history=True,
     num_history_runs=5,
     markdown=True,
     # Optional: Enable agentic memory for user preferences
@@ -113,17 +92,9 @@ if __name__ == "__main__":
 - **Important**: The `contents_table` parameter is only needed when the database is provided to a Knowledge base as a `contents_db`. If your agent doesn't use a Knowledge base, just use `get_postgres_db()` without arguments.
 
 ```python
-# Agent WITH a Knowledge base - specify contents_table
-agent_db = get_postgres_db(contents_table="my_agent_contents")
-knowledge = Knowledge(
-    vector_db=PgVector(
-        db_url=db_url,
-        table_name="my_agent_vectors",  # Vector embeddings table
-        search_type=SearchType.hybrid,
-        embedder=OpenAIEmbedder(id="text-embedding-3-small"),
-    ),
-    contents_db=agent_db,  # <-- contents_table stores document contents
-)
+# Agent WITH a Knowledge base - use create_knowledge helper
+from db import create_knowledge
+knowledge = create_knowledge("My Knowledge", "my_vectors")
 
 # Agent WITHOUT a Knowledge base - no contents_table needed
 agent_db = get_postgres_db()
@@ -136,13 +107,9 @@ agent_db = get_postgres_db()
 
 ```python
 # Database
-from db import db_url, get_postgres_db
+from db import db_url, get_postgres_db, create_knowledge
 
-# Scout (top-level package)
-from scout import scout, scout_knowledge, scout_learnings
-from scout.paths import DOCUMENTS_DIR
-
-# Other agents
+# Agents
 from agents.knowledge_agent import knowledge_agent
 from agents.mcp_agent import mcp_agent
 ```
@@ -155,7 +122,7 @@ from agents.mcp_agent import mcp_agent
    from agents.new_agent import new_agent
 
    agent_os = AgentOS(
-       agents=[scout, knowledge_agent, mcp_agent, new_agent],
+       agents=[knowledge_agent, mcp_agent, new_agent],
        ...
    )
    ```
@@ -170,14 +137,6 @@ source .venv/bin/activate
 
 # Local development with Docker
 docker compose up -d --build
-
-# Test individual agents
-python -m scout
-python -m agents.mcp_agent
-
-# Load Scout knowledge into vector DB
-python -m scout.scripts.load_knowledge
-python -m scout.scripts.load_knowledge --recreate
 
 # Load documents into knowledge agent
 python -m agents.knowledge_agent
@@ -196,8 +155,6 @@ Required:
 - `OPENAI_API_KEY`
 
 Optional:
-- `EXA_API_KEY` - Enables web research tools (Scout)
-- `DOCUMENTS_DIR` - Documents directory (default: `./documents`, `/documents` in Docker)
 - `DB_DRIVER` - Database driver (default: `postgresql+psycopg`)
 - `PORT` - API server port (default: `8000`)
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS`, `DB_DATABASE`
@@ -212,11 +169,8 @@ Optional:
 
 | Agent | Storage | Table/Location |
 |-------|---------|----------------|
-| Scout | Local Files (`documents/`) | Documents via `scout/paths.py` |
-| Scout | PostgreSQL (vector embeddings) | `scout_knowledge` |
-| Scout | PostgreSQL (learnings embeddings) | `scout_learnings` |
 | Knowledge Agent | PostgreSQL (vector embeddings) | `knowledge_agent_docs` |
-| Knowledge Agent | PostgreSQL (document contents) | `knowledge_agent_contents` |
+| Knowledge Agent | PostgreSQL (document contents) | `knowledge_agent_docs_contents` |
 | All | PostgreSQL | Session/memory tables (automatic) |
 
 ---
