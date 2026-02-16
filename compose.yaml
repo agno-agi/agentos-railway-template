@@ -2,6 +2,7 @@ services:
   agentos-db:
     image: agnohq/pgvector:18
     container_name: agentos-db
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-ai}
       POSTGRES_PASSWORD: ${DB_PASS:-ai}
