@@ -105,25 +105,6 @@ Search the docs for how to use LearningMachine
 Find examples of agents with memory
 ```
 
-
-## Project Structure
-```
-├── agents/                  # Agents
-│   ├── knowledge_agent.py   # Agentic RAG
-│   └── mcp_agent.py         # MCP Tool Use
-├── app/
-│   ├── main.py              # AgentOS entry point
-│   └── config.yaml          # Quick prompts config
-├── db/
-│   ├── session.py           # PostgreSQL database helpers
-│   └── url.py               # Connection URL builder
-├── scripts/                 # Helper scripts
-├── compose.yaml             # Docker Compose config
-├── Dockerfile
-├── railway.json             # Railway config
-└── pyproject.toml           # Dependencies
-```
-
 ## Common Tasks
 
 ### Add your own agent
