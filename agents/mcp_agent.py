@@ -58,5 +58,9 @@ mcp_agent = Agent(
     markdown=True,
 )
 
+async def main():
+    await mcp_agent.aprint_response("What tools do you have access to?", stream=True)
+
 if __name__ == "__main__":
-    mcp_agent.print_response("What is Agno?", stream=True)
+    import asyncio
+    asyncio.run(main())
