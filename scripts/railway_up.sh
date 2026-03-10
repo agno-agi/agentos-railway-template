@@ -4,12 +4,12 @@
 #
 #    Agno Railway Deployment
 #
-#    Usage: ./scripts/railway_up.sh
+#    Usage: ./scripts/railway_up.sh [OPTIONS]
 #
 #    Prerequisites:
 #      - Railway CLI installed
 #      - Logged in via `railway login`
-#      - OPENAI_API_KEY set in environment
+#      - OPENAI_API_KEY set in environment (fresh deploy only)
 #
 ############################################################################
 
@@ -20,6 +20,24 @@ ORANGE='\033[38;5;208m'
 DIM='\033[2m'
 BOLD='\033[1m'
 NC='\033[0m'
+
+PROJECT=""
+ENVIRONMENT="production"
+APP_SERVICE="agent-os"
+UPDATE=false
+
+usage() {
+    cat <<EOF
+Usage: ./scripts/railway_up.sh [OPTIONS]
+
+Options:
+  -U, --update                  Update the currently linked project (re-deploy only)
+  -p, --project PROJECT         Deploy to an existing Railway project (ID recommended)
+  -e, --environment ENVIRONMENT Railway environment for project linking (default: production)
+  -s, --service SERVICE         Railway service name to deploy (default: agent-os)
+  -h, --help                    Show this help message
+EOF
+}
 
 echo ""
 echo -e "${ORANGE}"
@@ -47,6 +65,82 @@ if ! command -v railway &> /dev/null; then
     exit 1
 fi
 
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -U|--update)
+            UPDATE=true
+            shift
+            ;;
+        -p|--project)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Missing value for $1."
+                usage
+                exit 1
+            fi
+            PROJECT="$2"
+            shift 2
+            ;;
+        -e|--environment)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Missing value for $1."
+                usage
+                exit 1
+            fi
+            ENVIRONMENT="$2"
+            shift 2
+            ;;
+        -s|--service)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Missing value for $1."
+                usage
+                exit 1
+            fi
+            APP_SERVICE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+if [[ "$UPDATE" == true ]]; then
+    echo ""
+    echo -e "${BOLD}Updating currently linked project...${NC}"
+    echo ""
+    railway up --service "$APP_SERVICE" -d
+
+    echo ""
+    echo -e "${BOLD}Done.${NC} Update deployed."
+    echo -e "${DIM}Logs: railway logs --service ${APP_SERVICE}${NC}"
+    echo ""
+    exit 0
+fi
+
+if [[ -n "$PROJECT" ]]; then
+    echo ""
+    echo -e "${BOLD}Linking to existing Railway project...${NC}"
+    echo ""
+    railway link --project "$PROJECT" --environment "$ENVIRONMENT"
+
+    echo ""
+    echo -e "${BOLD}Deploying application...${NC}"
+    echo ""
+    railway up --service "$APP_SERVICE" -d
+
+    echo ""
+    echo -e "${BOLD}Done.${NC} Deployed to existing project."
+    echo -e "${DIM}Logs: railway logs --service ${APP_SERVICE}${NC}"
+    echo ""
+    exit 0
+fi
+
 if [[ -z "$OPENAI_API_KEY" ]]; then
     echo "OPENAI_API_KEY not set."
     exit 1
@@ -68,7 +162,7 @@ sleep 10
 echo ""
 echo -e "${BOLD}Creating application service...${NC}"
 echo ""
-railway add --service agent-os \
+railway add --service "$APP_SERVICE" \
     --variables 'DB_USER=${{pgvector.PGUSER}}' \
     --variables 'DB_PASS=${{pgvector.PGPASSWORD}}' \
     --variables 'DB_HOST=${{pgvector.PGHOST}}' \
@@ -82,14 +176,14 @@ railway add --service agent-os \
 echo ""
 echo -e "${BOLD}Deploying application...${NC}"
 echo ""
-railway up --service agent-os -d
+railway up --service "$APP_SERVICE" -d
 
 echo ""
 echo -e "${BOLD}Creating domain...${NC}"
 echo ""
-railway domain --service agent-os
+railway domain --service "$APP_SERVICE"
 
 echo ""
 echo -e "${BOLD}Done.${NC} Domain may take ~5 minutes."
-echo -e "${DIM}Logs: railway logs --service agent-os${NC}"
+echo -e "${DIM}Logs: railway logs --service ${APP_SERVICE}${NC}"
 echo ""
