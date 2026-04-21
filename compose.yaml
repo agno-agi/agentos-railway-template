@@ -41,6 +41,12 @@ services:
       - PRINT_ENV_ON_LOAD=True
       # API keys
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - WHATSAPP_ENABLED=${WHATSAPP_ENABLED:-false}
+      # WhatsApp Cloud API
+      - WHATSAPP_ACCESS_TOKEN=${WHATSAPP_ACCESS_TOKEN}
+      - WHATSAPP_PHONE_NUMBER_ID=${WHATSAPP_PHONE_NUMBER_ID}
+      - WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}
+      - WHATSAPP_APP_SECRET=${WHATSAPP_APP_SECRET}
     depends_on:
       - agentos-db
     networks:

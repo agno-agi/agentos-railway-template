@@ -37,12 +37,20 @@ if [[ "$WAIT_FOR_DB" = true || "$WAIT_FOR_DB" = True ]]; then
     echo ""
 fi
 
+PORT_VALUE="${PORT:-8000}"
+
 case "$1" in
     chill)
         echo -e "    ${DIM}Mode: chill${NC}"
         echo -e "    ${BOLD}Container running.${NC}"
         echo ""
         while true; do sleep 18000; done
+        ;;
+    serve)
+        echo -e "    ${DIM}Mode: serve${NC}"
+        echo -e "    ${BOLD}Starting AgentOS on 0.0.0.0:${PORT_VALUE}.${NC}"
+        echo ""
+        exec uvicorn app.main:app --host 0.0.0.0 --port "$PORT_VALUE"
         ;;
     *)
         echo -e "    ${DIM}> $@${NC}"

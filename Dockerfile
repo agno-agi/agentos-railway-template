@@ -33,4 +33,4 @@ USER app
 EXPOSE 8000
 
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]
-CMD ["chill"]
+CMD ["serve"]

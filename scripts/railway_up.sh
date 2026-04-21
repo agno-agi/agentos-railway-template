@@ -77,6 +77,11 @@ railway add --service agent-os \
     --variables "DB_DRIVER=postgresql+psycopg" \
     --variables "WAIT_FOR_DB=True" \
     --variables "OPENAI_API_KEY=${OPENAI_API_KEY}" \
+    --variables "WHATSAPP_ENABLED=${WHATSAPP_ENABLED:-false}" \
+    --variables "WHATSAPP_ACCESS_TOKEN=${WHATSAPP_ACCESS_TOKEN}" \
+    --variables "WHATSAPP_PHONE_NUMBER_ID=${WHATSAPP_PHONE_NUMBER_ID}" \
+    --variables "WHATSAPP_VERIFY_TOKEN=${WHATSAPP_VERIFY_TOKEN}" \
+    --variables "WHATSAPP_APP_SECRET=${WHATSAPP_APP_SECRET}" \
     --variables "PORT=8000"
 
 echo ""

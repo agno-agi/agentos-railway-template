@@ -2,6 +2,15 @@
 
 This file provides context for Claude Code when working with this repository.
 
+## IMPORTANT — Troubleshooting & Setup References
+
+**BEFORE diagnosing ANY error related to Docker, Docker Compose, WSL2, Agno/AgentOS startup, line endings, or Python deps in this repo, YOU MUST consult these files first:**
+
+- [`../TROUBLESHOOTING_DOCKER_COMPOSE.md`](../TROUBLESHOOTING_DOCKER_COMPOSE.md) — Catalog of 8 mapped errors with causes and fixes. Anti-patterns section lists known-bad routes to avoid.
+- [`../SETUP_DOCKER_COMPOSE.md`](../SETUP_DOCKER_COMPOSE.md) — The clean, validated setup path (11 steps). Use this as the reference flow; deviate only if the user requests.
+
+**Rule:** If a symptom matches an entry in TROUBLESHOOTING_DOCKER_COMPOSE.md, apply the documented fix directly — do NOT invent a new approach or re-diagnose from scratch. If you find a new error, add it to that file after resolving.
+
 ## Project Overview
 
 AgentOS - A multi-agent system built by Agno.

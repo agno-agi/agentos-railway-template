@@ -64,6 +64,8 @@ python-multipart==0.0.22
 pytz==2025.2
 pyyaml==6.0.3
 referencing==0.37.0
+requests==2.32.3
+charset-normalizer==3.4.0
 rich==14.3.3
 rich-toolkit==0.19.7
 rignore==0.7.6

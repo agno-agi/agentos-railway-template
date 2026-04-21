@@ -49,6 +49,109 @@ railway login
 
 The script provisions PostgreSQL, configures environment variables, and deploys your application.
 
+### Deploy to Railway via GitHub UI
+
+If you want to deploy directly from the Railway dashboard instead of the CLI, use this exact flow.
+
+#### 1. Create the AgentOS service from GitHub
+
+1. In Railway, click `New` -> `Deploy from GitHub repo`.
+2. Select this repository.
+3. If the template files are already at the repo root, leave `Root Directory` empty.
+4. If this code is inside a larger repo or monorepo, set `Root Directory` to `agentos-railway`.
+
+Railway builds from the source directory root. If the `Dockerfile` is not at that root, deployment fails unless you point Railway to the correct directory.
+
+#### 2. Add PostgreSQL to the same Railway project
+
+1. Click `New` -> `Database` -> `PostgreSQL`.
+2. Wait for provisioning to finish.
+3. Rename the database service to something simple like `postgres` if you want cleaner variable references.
+
+Railway exposes `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`, and `DATABASE_URL` automatically for the database service.
+
+#### 3. Fill the `Settings` tab for the AgentOS service
+
+Use these values:
+
+| Section | Field | What to fill |
+|--------|-------|--------------|
+| Source | Source Repo | The GitHub repo you selected |
+| Source | Root Directory | Leave empty if the template is at repo root. Use `agentos-railway` only if the template is nested inside a larger repo |
+| Networking | Public Networking | Add `HTTP Proxy` |
+| Networking | HTTP target/internal port | `8000` |
+| Deploy | Pre-deploy Command | Leave empty |
+| Deploy | Custom Start Command | Leave empty |
+| Deploy | Healthcheck Path | `/health` |
+| Deploy | Restart Policy | `On Failure` |
+| Deploy | Restart retries | `10` |
+| Deploy | Replicas | `1` |
+
+Do not add `TCP Proxy` for the API service. This container exposes HTTP only.
+
+#### 4. Fill the `Variables` tab for the AgentOS service
+
+Add these variables:
+
+```dotenv
+OPENAI_API_KEY=sk-...
+DB_DRIVER=postgresql+psycopg
+WAIT_FOR_DB=True
+PORT=8000
+WHATSAPP_ENABLED=false
+DB_HOST=${{postgres.PGHOST}}
+DB_PORT=${{postgres.PGPORT}}
+DB_USER=${{postgres.PGUSER}}
+DB_PASS=${{postgres.PGPASSWORD}}
+DB_DATABASE=${{postgres.PGDATABASE}}
+```
+
+Important:
+
+- Replace `postgres` in `${{postgres.PGHOST}}` with the exact Railway service name of your PostgreSQL service.
+- The Railway variables UI autocompletes references. Use the autocomplete instead of typing these references manually.
+- `OPENAI_API_KEY` is the only required secret for the default template.
+- `PORT=8000` keeps the HTTP proxy, healthcheck, and the container aligned.
+
+Optional model provider variables:
+
+```dotenv
+ANTHROPIC_API_KEY=sk-ant-...
+GOOGLE_API_KEY=...
+```
+
+Only add the WhatsApp variables if you are enabling the WhatsApp interface:
+
+```dotenv
+WHATSAPP_ENABLED=true
+WHATSAPP_ACCESS_TOKEN=...
+WHATSAPP_PHONE_NUMBER_ID=...
+WHATSAPP_VERIFY_TOKEN=...
+WHATSAPP_APP_SECRET=...
+```
+
+If `WHATSAPP_ENABLED=true` and one of those values is missing, the container now fails fast on startup instead of booting with a broken webhook configuration.
+
+#### 5. Deploy and validate
+
+1. Click `Deploy`.
+2. Open the generated Railway domain.
+3. Check:
+   - `https://<your-domain>/health`
+   - `https://<your-domain>/docs`
+4. In `os.agno.com`, connect the deployment using the live Railway URL.
+
+#### 6. Where each value comes from
+
+| Value | Where you get it |
+|-------|-------------------|
+| `OPENAI_API_KEY` | OpenAI Platform dashboard |
+| `DB_*` variables | Railway Postgres reference variables |
+| `PORT` | Fixed manually to `8000` for this container |
+| `Healthcheck Path` | This repo exposes `/health` |
+| `Custom Start Command` | Leave blank because the container starts AgentOS by default |
+| `WHATSAPP_*` variables | Meta Developers -> your app -> WhatsApp -> API Setup |
+
 ### Connect to the Web UI
 
 1. Open [os.agno.com](https://os.agno.com)
@@ -200,6 +303,12 @@ python -m app.main
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `OPENAI_API_KEY` | Yes | - | OpenAI API key |
+| `WHATSAPP_ENABLED` | No | `false` | Enables the live WhatsApp interface. Leave disabled for local tests/dev. |
+| `WHATSAPP_ACCESS_TOKEN` | No | - | Meta WhatsApp Cloud API access token. Required only when `WHATSAPP_ENABLED=true`. |
+| `WHATSAPP_PHONE_NUMBER_ID` | No | - | Meta WhatsApp phone number id. Required only when `WHATSAPP_ENABLED=true`. |
+| `WHATSAPP_VERIFY_TOKEN` | No | - | Webhook verification token. Required only when `WHATSAPP_ENABLED=true`. |
+| `WHATSAPP_APP_SECRET` | No | - | Meta app secret for webhook signature validation. Required only when `WHATSAPP_ENABLED=true`. |
+| `WHATSAPP_SKIP_SIGNATURE_VALIDATION` | No | `false` | Local-only escape hatch when testing webhooks without `WHATSAPP_APP_SECRET`. |
 | `PORT` | No | `8000` | API server port |
 | `DB_HOST` | No | `localhost` | Database host |
 | `DB_PORT` | No | `5432` | Database port |
