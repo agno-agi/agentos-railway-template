@@ -4,40 +4,25 @@
 #
 #    Agno Railway Deployment
 #
-#    Usage: ./scripts/railway_up.sh [OPTIONS]
+#    Usage:
+#      ./scripts/railway_up.sh           # Fresh deploy (provisions everything)
+#      ./scripts/railway_up.sh update    # Re-deploy code only
+#      ./scripts/railway_up.sh link ID   # Link to existing project, then deploy
 #
-#    Prerequisites:
-#      - Railway CLI installed
-#      - Logged in via `railway login`
-#      - OPENAI_API_KEY set in environment (fresh deploy only)
+#    Configuration: Edit railway.config before running
 #
 ############################################################################
 
 set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Colors
 ORANGE='\033[38;5;208m'
 DIM='\033[2m'
 BOLD='\033[1m'
 NC='\033[0m'
-
-PROJECT=""
-ENVIRONMENT="production"
-APP_SERVICE="agent-os"
-UPDATE=false
-
-usage() {
-    cat <<EOF
-Usage: ./scripts/railway_up.sh [OPTIONS]
-
-Options:
-  -U, --update                  Update the currently linked project (re-deploy only)
-  -p, --project PROJECT         Deploy to an existing Railway project (ID recommended)
-  -e, --environment ENVIRONMENT Railway environment for project linking (default: production)
-  -s, --service SERVICE         Railway service name to deploy (default: agent-os)
-  -h, --help                    Show this help message
-EOF
-}
 
 echo ""
 echo -e "${ORANGE}"
@@ -51,139 +36,129 @@ cat << 'BANNER'
 BANNER
 echo -e "${NC}"
 
-# Load .env if it exists
-if [[ -f .env ]]; then
+# Load config
+if [[ -f "$ROOT_DIR/railway.config" ]]; then
+    source "$ROOT_DIR/railway.config"
+    echo -e "${DIM}Config: PROJECT_NAME=$PROJECT_NAME, SERVICE_NAME=$SERVICE_NAME${NC}"
+else
+    echo "Missing railway.config. Copy from railway.config.example and edit."
+    exit 1
+fi
+
+# Load .env for secrets
+if [[ -f "$ROOT_DIR/.env" ]]; then
     set -a
-    source .env
+    source "$ROOT_DIR/.env"
     set +a
-    echo -e "${DIM}Loaded .env${NC}"
 fi
 
 # Preflight
 if ! command -v railway &> /dev/null; then
-    echo "Railway CLI not found. Install: https://docs.railway.app/guides/cli"
+    echo "Railway CLI not found. Install: https://docs.railway.com/guides/cli"
     exit 1
 fi
 
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -U|--update)
-            UPDATE=true
-            shift
-            ;;
-        -p|--project)
-            if [[ -z "$2" || "$2" == -* ]]; then
-                echo "Missing value for $1."
-                usage
-                exit 1
-            fi
-            PROJECT="$2"
-            shift 2
-            ;;
-        -e|--environment)
-            if [[ -z "$2" || "$2" == -* ]]; then
-                echo "Missing value for $1."
-                usage
-                exit 1
-            fi
-            ENVIRONMENT="$2"
-            shift 2
-            ;;
-        -s|--service)
-            if [[ -z "$2" || "$2" == -* ]]; then
-                echo "Missing value for $1."
-                usage
-                exit 1
-            fi
-            APP_SERVICE="$2"
-            shift 2
-            ;;
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        *)
-            echo "Unknown option: $1"
-            usage
-            exit 1
-            ;;
-    esac
-done
+# -----------------------------------------------------------------------------
+# Commands
+# -----------------------------------------------------------------------------
 
-if [[ "$UPDATE" == true ]]; then
+cmd_update() {
     echo ""
-    echo -e "${BOLD}Updating currently linked project...${NC}"
+    echo -e "${BOLD}Re-deploying ${SERVICE_NAME}...${NC}"
     echo ""
-    railway up --service "$APP_SERVICE" -d
+    railway up --service "$SERVICE_NAME" -d
 
     echo ""
-    echo -e "${BOLD}Done.${NC} Update deployed."
-    echo -e "${DIM}Logs: railway logs --service ${APP_SERVICE}${NC}"
-    echo ""
-    exit 0
-fi
+    echo -e "${BOLD}Done.${NC}"
+    echo -e "${DIM}Logs: railway logs --service ${SERVICE_NAME}${NC}"
+}
 
-if [[ -n "$PROJECT" ]]; then
-    echo ""
-    echo -e "${BOLD}Linking to existing Railway project...${NC}"
-    echo ""
-    railway link --project "$PROJECT" --environment "$ENVIRONMENT"
-
-    echo ""
-    echo -e "${BOLD}Deploying application...${NC}"
-    echo ""
-    railway up --service "$APP_SERVICE" -d
+cmd_link() {
+    local project_id="$1"
+    if [[ -z "$project_id" ]]; then
+        echo "Usage: ./scripts/railway_up.sh link <project-id>"
+        exit 1
+    fi
 
     echo ""
-    echo -e "${BOLD}Done.${NC} Deployed to existing project."
-    echo -e "${DIM}Logs: railway logs --service ${APP_SERVICE}${NC}"
+    echo -e "${BOLD}Linking to project ${project_id}...${NC}"
     echo ""
-    exit 0
-fi
+    railway link --project "$project_id" --environment "$RAILWAY_ENVIRONMENT"
 
-if [[ -z "$OPENAI_API_KEY" ]]; then
-    echo "OPENAI_API_KEY not set."
-    exit 1
-fi
+    echo ""
+    echo -e "${BOLD}Deploying ${SERVICE_NAME}...${NC}"
+    echo ""
+    railway up --service "$SERVICE_NAME" -d
 
-echo -e "${BOLD}Initializing project...${NC}"
-echo ""
-railway init -n "agent-os"
+    echo ""
+    echo -e "${BOLD}Done.${NC}"
+    echo -e "${DIM}Logs: railway logs --service ${SERVICE_NAME}${NC}"
+}
 
-echo ""
-echo -e "${BOLD}Deploying PgVector database...${NC}"
-echo ""
-railway deploy -t 3jJFCA
+cmd_fresh() {
+    if [[ -z "$OPENAI_API_KEY" ]]; then
+        echo "OPENAI_API_KEY not set. Add it to .env"
+        exit 1
+    fi
 
-echo ""
-echo -e "${DIM}Waiting 10s for database...${NC}"
-sleep 10
+    echo ""
+    echo -e "${BOLD}Creating project '${PROJECT_NAME}'...${NC}"
+    echo ""
+    railway init -n "$PROJECT_NAME"
 
-echo ""
-echo -e "${BOLD}Creating application service...${NC}"
-echo ""
-railway add --service "$APP_SERVICE" \
-    --variables 'DB_USER=${{pgvector.PGUSER}}' \
-    --variables 'DB_PASS=${{pgvector.PGPASSWORD}}' \
-    --variables 'DB_HOST=${{pgvector.PGHOST}}' \
-    --variables 'DB_PORT=${{pgvector.PGPORT}}' \
-    --variables 'DB_DATABASE=${{pgvector.PGDATABASE}}' \
-    --variables "DB_DRIVER=postgresql+psycopg" \
-    --variables "WAIT_FOR_DB=True" \
-    --variables "OPENAI_API_KEY=${OPENAI_API_KEY}" \
-    --variables "PORT=8000"
+    echo ""
+    echo -e "${BOLD}Provisioning PgVector database...${NC}"
+    echo ""
+    railway deploy -t 3jJFCA
 
-echo ""
-echo -e "${BOLD}Deploying application...${NC}"
-echo ""
-railway up --service "$APP_SERVICE" -d
+    echo -e "${DIM}Waiting 10s for database...${NC}"
+    sleep 10
 
-echo ""
-echo -e "${BOLD}Creating domain...${NC}"
-echo ""
-railway domain --service "$APP_SERVICE"
+    echo ""
+    echo -e "${BOLD}Creating service '${SERVICE_NAME}'...${NC}"
+    echo ""
+    railway add --service "$SERVICE_NAME" \
+        --variables 'DB_USER=${{pgvector.PGUSER}}' \
+        --variables 'DB_PASS=${{pgvector.PGPASSWORD}}' \
+        --variables 'DB_HOST=${{pgvector.PGHOST}}' \
+        --variables 'DB_PORT=${{pgvector.PGPORT}}' \
+        --variables 'DB_DATABASE=${{pgvector.PGDATABASE}}' \
+        --variables "DB_DRIVER=postgresql+psycopg" \
+        --variables "WAIT_FOR_DB=True" \
+        --variables "OPENAI_API_KEY=${OPENAI_API_KEY}" \
+        --variables "PORT=8000"
 
-echo ""
-echo -e "${BOLD}Done.${NC} Domain may take ~5 minutes."
-echo -e "${DIM}Logs: railway logs --service ${APP_SERVICE}${NC}"
-echo ""
+    echo ""
+    echo -e "${BOLD}Deploying ${SERVICE_NAME}...${NC}"
+    echo ""
+    railway up --service "$SERVICE_NAME" -d
+
+    echo ""
+    echo -e "${BOLD}Creating domain...${NC}"
+    echo ""
+    railway domain --service "$SERVICE_NAME"
+
+    echo ""
+    echo -e "${BOLD}Done.${NC} Domain may take ~5 minutes."
+    echo -e "${DIM}Logs: railway logs --service ${SERVICE_NAME}${NC}"
+}
+
+# -----------------------------------------------------------------------------
+# Main
+# -----------------------------------------------------------------------------
+
+case "${1:-}" in
+    update)
+        cmd_update
+        ;;
+    link)
+        cmd_link "$2"
+        ;;
+    ""|fresh)
+        cmd_fresh
+        ;;
+    *)
+        echo "Usage: ./scripts/railway_up.sh [update|link <project-id>]"
+        exit 1
+        ;;
+esac

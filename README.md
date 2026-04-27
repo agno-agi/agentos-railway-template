@@ -41,27 +41,30 @@ Requires:
 - [Railway CLI](https://docs.railway.com/guides/cli)
 - `OPENAI_API_KEY` set in your environment (required for fresh deploy)
 
+**Configuration:** Edit `railway.config` to set your project and service names.
+
 ```sh
 railway login
 
-# Fresh deploy: creates a new Railway project and provisions pgvector + app service
+# Deploy (provisions database + app, creates domain)
 ./scripts/railway_up.sh
 
-# Update: re-deploy to the currently linked project (after code changes)
-./scripts/railway_up.sh -U
+# Re-deploy code only (after changes)
+./scripts/railway_up.sh update
 
-# Deploy to a specific existing project (links first, then deploys)
-./scripts/railway_up.sh --project <project-id-or-name> --environment production
-
-# Deploy with a custom service name
-./scripts/railway_up.sh --project <project-id-or-name> --service agent_os
+# Deploy to an existing project
+./scripts/railway_up.sh link <project-id>
 ```
 
-Use a project ID when possible for reliable targeting.
+For different projects (Coda, Slack, Dash), edit `railway.config`:
 
-Without flags, the script provisions PostgreSQL, configures environment variables, and deploys your application.
-With `-U`, it re-deploys to the already linked project (no provisioning).
-With `--project`, it links to a specific project first, then deploys.
+```sh
+# railway.config
+PROJECT_NAME="coda-bot"
+SERVICE_NAME="coda"
+```
+
+Then run `./scripts/railway_up.sh` — that's it.
 
 ### Connect to the Web UI
 
@@ -71,17 +74,17 @@ With `--project`, it links to a specific project first, then deploys.
 
 ### Manage deployment
 
-Replace `<service>` with your service name (`agent-os` by default, or the value passed to `--service`).
+Use the `SERVICE_NAME` from your `railway.config` (default: `agent-os`).
 
 ```sh
-railway logs --service <service>      # View logs
+railway logs --service agent-os       # View logs
 railway open                          # Open dashboard
-railway up --service <service> -d     # Update after changes
+./scripts/railway_up.sh update        # Re-deploy after code changes
 ```
 
 To stop services:
 ```sh
-railway down --service <service>
+railway down --service agent-os
 railway down --service pgvector
 ```
 
