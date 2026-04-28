@@ -6,15 +6,14 @@
 #
 #    Usage: ./scripts/railway_redeploy.sh
 #
-#    Redeploys the app service to an existing Railway project.
-#    Run ./scripts/railway_up.sh first for initial provisioning.
+#    Prerequisites:
+#      - Railway CLI installed
+#      - Logged in via `railway login`
+#      - Project already deployed via ./scripts/railway_up.sh
 #
 ############################################################################
 
 set -e
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Colors
 DIM='\033[2m'
@@ -22,11 +21,11 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # Load config
-if [[ -f "$ROOT_DIR/railway.config" ]]; then
-    source "$ROOT_DIR/railway.config"
+if [[ -f railway.config ]]; then
+    source railway.config
     echo -e "${DIM}Config: SERVICE_NAME=$SERVICE_NAME${NC}"
 else
-    echo "Missing railway.config"
+    echo "Missing railway.config. Run from project root."
     exit 1
 fi
 

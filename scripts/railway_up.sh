@@ -2,19 +2,18 @@
 
 ############################################################################
 #
-#    Agno Railway Setup (first-time provisioning)
+#    Agno Railway Deployment
 #
 #    Usage: ./scripts/railway_up.sh
-#    Redeploy: ./scripts/railway_redeploy.sh
 #
-#    Configuration: Edit railway.config before running
+#    Prerequisites:
+#      - Railway CLI installed
+#      - Logged in via `railway login`
+#      - OPENAI_API_KEY set in environment
 #
 ############################################################################
 
 set -e
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Colors
 ORANGE='\033[38;5;208m'
@@ -35,18 +34,18 @@ BANNER
 echo -e "${NC}"
 
 # Load config
-if [[ -f "$ROOT_DIR/railway.config" ]]; then
-    source "$ROOT_DIR/railway.config"
+if [[ -f railway.config ]]; then
+    source railway.config
     echo -e "${DIM}Config: PROJECT_NAME=$PROJECT_NAME, SERVICE_NAME=$SERVICE_NAME${NC}"
 else
-    echo "Missing railway.config"
+    echo "Missing railway.config. Run from project root."
     exit 1
 fi
 
 # Load .env for secrets
-if [[ -f "$ROOT_DIR/.env" ]]; then
+if [[ -f .env ]]; then
     set -a
-    source "$ROOT_DIR/.env"
+    source .env
     set +a
 fi
 
