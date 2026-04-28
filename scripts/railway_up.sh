@@ -71,6 +71,7 @@ echo -e "${BOLD}Provisioning PgVector database...${NC}"
 echo ""
 railway deploy -t 3jJFCA
 
+echo ""
 echo -e "${DIM}Waiting 10s for database...${NC}"
 sleep 10
 
