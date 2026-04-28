@@ -46,14 +46,11 @@ Requires:
 ```sh
 railway login
 
-# Deploy (provisions database + app, creates domain)
+# First-time setup (provisions database + app, creates domain)
 ./scripts/railway_up.sh
 
 # Re-deploy code only (after changes)
-./scripts/railway_up.sh update
-
-# Deploy to an existing project
-./scripts/railway_up.sh link <project-id>
+./scripts/railway_redeploy.sh
 ```
 
 For different projects (Coda, Slack, Dash), edit `railway.config`:
@@ -79,7 +76,7 @@ Use the `SERVICE_NAME` from your `railway.config` (default: `agent-os`).
 ```sh
 railway logs --service agent-os       # View logs
 railway open                          # Open dashboard
-./scripts/railway_up.sh update        # Re-deploy after code changes
+./scripts/railway_redeploy.sh         # Re-deploy after code changes
 ```
 
 To stop services:
