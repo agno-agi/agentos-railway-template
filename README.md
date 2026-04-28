@@ -41,9 +41,7 @@ Confirm AgentOS is running at [http://localhost:8000/docs](http://localhost:8000
 
 ### One-Click Deploy
 
-Click the button below to deploy AgentOS to Railway:
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/agentos)
+Click the deploy button at the top of this page, or go to [railway.com/new/template/agentos](https://railway.com/new/template/agentos).
 
 You'll need to provide your `OPENAI_API_KEY`. The template automatically provisions PostgreSQL with pgvector.
 
