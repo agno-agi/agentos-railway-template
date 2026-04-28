@@ -69,11 +69,11 @@ railway init -n "$PROJECT_NAME"
 echo ""
 echo -e "${BOLD}Provisioning PgVector database...${NC}"
 echo ""
-railway deploy -t 3jJFCA
+railway deploy -t "$DB_TEMPLATE_ID"
 
 echo ""
-echo -e "${DIM}Waiting 10s for database...${NC}"
-sleep 10
+echo -e "${DIM}Waiting ${DB_WAIT_TIME}s for database...${NC}"
+sleep "$DB_WAIT_TIME"
 
 echo ""
 echo -e "${BOLD}Creating service '${SERVICE_NAME}'...${NC}"
@@ -87,7 +87,7 @@ railway add --service "$SERVICE_NAME" \
     --variables "DB_DRIVER=postgresql+psycopg" \
     --variables "WAIT_FOR_DB=True" \
     --variables "OPENAI_API_KEY=${OPENAI_API_KEY}" \
-    --variables "PORT=8000"
+    --variables "PORT=${PORT}"
 
 echo ""
 echo -e "${BOLD}Deploying ${SERVICE_NAME}...${NC}"
