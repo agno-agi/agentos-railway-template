@@ -57,7 +57,7 @@ if ! command -v railway &> /dev/null; then
 fi
 
 if [[ -z "$OPENAI_API_KEY" ]]; then
-    echo "OPENAI_API_KEY not set. Add it to .env"
+    echo "OPENAI_API_KEY not set."
     exit 1
 fi
 
