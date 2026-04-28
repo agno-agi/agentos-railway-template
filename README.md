@@ -71,17 +71,17 @@ Then run `./scripts/railway_up.sh` — that's it.
 
 ### Manage deployment
 
-Use the `SERVICE_NAME` from your `railway.config` (default: `agent-os`).
+Use the `SERVICE_NAME` from your `railway.config`.
 
 ```sh
-railway logs --service agent-os       # View logs
-railway open                          # Open dashboard
-./scripts/railway_redeploy.sh         # Re-deploy after code changes
+railway logs --service <SERVICE_NAME>  # View logs
+railway open                           # Open dashboard
+./scripts/railway_redeploy.sh          # Re-deploy after code changes
 ```
 
 To stop services:
 ```sh
-railway down --service agent-os
+railway down --service <SERVICE_NAME>
 railway down --service pgvector
 ```
 
@@ -222,7 +222,10 @@ python -m app.main
 | `DB_USER` | No | `ai` | Database user |
 | `DB_PASS` | No | `ai` | Database password |
 | `DB_DATABASE` | No | `ai` | Database name |
+| `DB_DRIVER` | No | `postgresql+psycopg` | SQLAlchemy database driver |
 | `RUNTIME_ENV` | No | `prd` | Set to `dev` for auto-reload |
+| `WAIT_FOR_DB` | No | `False` | Wait for database before starting |
+| `AGNO_DEBUG` | No | `False` | Enable Agno debug logging |
 
 ## Learn More
 
