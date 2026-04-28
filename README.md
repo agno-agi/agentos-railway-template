@@ -1,5 +1,7 @@
 # AgentOS Railway Template
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/agentos)
+
 Deploy a multi-agent system on Railway.
 
 ## What's Included
@@ -37,31 +39,24 @@ Confirm AgentOS is running at [http://localhost:8000/docs](http://localhost:8000
 
 ## Deploy to Railway
 
-Requires:
-- [Railway CLI](https://docs.railway.com/guides/cli)
-- `OPENAI_API_KEY` set in your environment (required for fresh deploy)
+### One-Click Deploy
 
-**Configuration:** Edit `railway.config` to set your project and service names.
+Click the button below to deploy AgentOS to Railway:
+
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/agentos)
+
+You'll need to provide your `OPENAI_API_KEY`. The template automatically provisions PostgreSQL with pgvector.
+
+### CLI Deploy (Advanced)
+
+For more control, use the Railway CLI:
 
 ```sh
 railway login
-
-# First-time setup (provisions database + app, creates domain)
 ./scripts/railway_up.sh
-
-# Re-deploy code only (after changes)
-./scripts/railway_redeploy.sh
 ```
 
-For different projects (Coda, Slack, Dash), edit `railway.config`:
-
-```sh
-# railway.config
-PROJECT_NAME="coda-bot"
-SERVICE_NAME="coda"
-```
-
-Then run `./scripts/railway_up.sh` — that's it.
+This provisions the database, configures environment variables, and deploys your application.
 
 ### Connect to the Web UI
 
