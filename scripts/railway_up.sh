@@ -47,6 +47,7 @@ if [[ -f .env ]]; then
     set -a
     source .env
     set +a
+    echo -e "${DIM}Loaded .env${NC}"
 fi
 
 # Preflight
