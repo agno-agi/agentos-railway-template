@@ -1,16 +1,8 @@
 """
-Web Agent (Context Mode: Agent)
--------------------------------
+Web Agent
+---------
 
-Searches the web using Parallel MCP via a WebContextProvider in default
-(agent) mode. The context provider wraps the MCP tools behind a sub-agent,
-so the main agent sees a single `query_web` tool.
-
-This pattern isolates tool complexity: the sub-agent handles pagination,
-retries, and Parallel-specific quirks. The main agent stays focused on
-user intent.
-
-No API key required — Parallel MCP is free at search.parallel.ai/mcp.
+Web search using context provider in agent mode.
 
 Run:
     python -m agents.web_agent

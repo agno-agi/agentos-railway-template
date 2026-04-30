@@ -1,17 +1,8 @@
 """
-Web Tools Agent (Context Mode: Tools)
--------------------------------------
+Web Tools Agent
+---------------
 
-Searches the web using Parallel MCP via a WebContextProvider in tools
-mode. Unlike the default agent mode, tools mode flattens the MCP tools
-(`web_search`, `web_fetch`) directly onto this agent.
-
-Use this pattern when:
-- You want fewer LLM hops (no sub-agent overhead)
-- The tools have distinct, non-colliding names
-- You want fine-grained control over tool orchestration
-
-No API key required — Parallel MCP is free at search.parallel.ai/mcp.
+Web search using context provider in tools mode.
 
 Run:
     python -m agents.web_tools_agent

@@ -2,13 +2,7 @@
 Workspace Agent
 ---------------
 
-Answers questions about its own codebase using a WorkspaceContextProvider.
-The provider exposes tools to navigate, search, and read files in the repo.
-
-This pattern is useful for:
-- Onboarding: "How is the database configured?"
-- Debugging: "Find where errors are logged"
-- Exploration: "What agents are available?"
+Answers questions about this codebase.
 
 Run:
     python -m agents.workspace_agent
