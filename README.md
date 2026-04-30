@@ -49,7 +49,7 @@ Each agent uses a **context provider** to access an information source. The prov
 |-------|----------|------|-------|
 | **Search Agent** | `WebContextProvider` | agent | `query_web` |
 | **Research Agent** | `WebContextProvider` | tools | `web_search`, `web_fetch` |
-| **Codebase Agent** | `WorkspaceContextProvider` | agent | `query_workspace` |
+| **Codebase Agent** | `WorkspaceContextProvider` | tools | `list_files`, `search_content`, `read_file` |
 
 **Agent mode** wraps tools behind a sub-agent. Your agent sees one `query_<source>` tool — the sub-agent handles the underlying complexity.
 
