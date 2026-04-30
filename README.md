@@ -4,42 +4,31 @@
 
 The minimal AgentOS foundation. Three example agents, web search via MCP, and one-script deploy to Railway.
 
-## What's Included
+This template demonstrates **context providers** — a pattern for exposing information sources to agents without polluting their context with tool-specific quirks. Each provider wraps a source (web search, codebase, MCP server) and exposes it through one or two natural-language tools.
 
-| Agent | Pattern | Description |
-|-------|---------|-------------|
-| **Web Agent** | Context Provider (agent mode) | Web search via Parallel MCP. Sub-agent wraps the tools — you get one `query_web` tool. |
-| **Web Tools Agent** | Context Provider (tools mode) | Same web search, but tools (`web_search`, `web_fetch`) are flattened directly onto the agent. |
-| **Workspace Agent** | Context Provider | Answers questions about this codebase. Navigates, searches, and reads files. |
+## Quick start
 
-No API keys required except OpenAI — Parallel MCP is free.
+> **Prerequisite:** Docker Desktop installed and running ([install guide](https://docs.docker.com/desktop/)).
 
-## Quick Start
-
-```bash
+```sh
 git clone https://github.com/agno-agi/agentos-railway-template.git starter
 cd starter
 
 cp example.env .env
-# Set OPENAI_API_KEY in .env
+# set OPENAI_API_KEY in .env
 
 docker compose up -d --build
 ```
 
-Verify it's running:
+AgentOS is now running at `http://localhost:8000`.
 
-```bash
-curl http://localhost:8000/health
-# {"status":"ok"}
-```
+## Chat with your agents
 
-### Connect to the Web UI
+1. Open [os.agno.com](https://os.agno.com?utm_source=github&utm_medium=starter-template) and log in.
+2. Click **Add OS** → **Local** → enter `http://localhost:8000` → **Connect**.
+3. Select an agent and start chatting.
 
-1. Open [os.agno.com](https://os.agno.com) and log in
-2. Click **Add OS** → **Local** → `http://localhost:8000`
-3. Click **Connect**
-
-### Try the agents
+Try these prompts:
 
 ```
 # Web Agent — searches via sub-agent
@@ -52,45 +41,54 @@ Search for recent OpenAI news
 What agents are available in this project?
 ```
 
+## How it works
+
+Each agent uses a **context provider** to access an information source. The provider handles connection, pagination, retries, and source-specific quirks — the agent just calls `query_<source>`.
+
+| Agent | Provider | Mode | Tools |
+|-------|----------|------|-------|
+| **Web Agent** | `WebContextProvider` | agent | `query_web` |
+| **Web Tools Agent** | `WebContextProvider` | tools | `web_search`, `web_fetch` |
+| **Workspace Agent** | `WorkspaceContextProvider` | agent | `query_workspace` |
+
+**Agent mode** wraps tools behind a sub-agent. Your agent sees one `query_<source>` tool — the sub-agent handles the underlying complexity.
+
+**Tools mode** flattens tools directly onto your agent. Cheaper (no sub-agent LLM hop), but tool names must be distinct.
+
+No API keys required except OpenAI — the web backend uses [Parallel MCP](https://search.parallel.ai/mcp), which is free.
+
 ## Deploy to Railway
 
-### One-Click Deploy
+### One-click deploy
 
-Click the deploy button at the top of this page, or go to [railway.com/new/template/agentos](https://railway.com/new/template/agentos).
+Click the deploy button at the top of this README, or go to [railway.com/new/template/agentos](https://railway.com/new/template/agentos).
 
 You'll need to provide your `OPENAI_API_KEY`. The template automatically provisions PostgreSQL with pgvector.
 
-### CLI Deploy
+### CLI deploy
 
-For more control, use the Railway CLI:
+**Prereqs:** [Railway CLI](https://docs.railway.app/guides/cli) installed and `railway login` run.
 
-```bash
-# Install Railway CLI: https://docs.railway.app/guides/cli
-railway login
+```sh
 ./scripts/railway_up.sh
 ```
 
-The script provisions PostgreSQL, deploys your app, and assigns a public domain (~5 min).
+This provisions PostgreSQL, deploys your app, and assigns a public domain (~5 min).
 
-### Sync env vars after changes
+After code or env changes:
 
-```bash
-./scripts/railway_env.sh
+```sh
+./scripts/railway_env.sh       # sync .env → Railway
+./scripts/railway_redeploy.sh  # push code updates
 ```
 
-### Redeploy after code changes
-
-```bash
-./scripts/railway_redeploy.sh
-```
-
-### Connect production to AgentOS UI
+### Connect production to AgentOS
 
 1. Open [os.agno.com](https://os.agno.com)
 2. Click **Add OS** → **Live**
 3. Enter your Railway domain
 
-## Add Your Own Agent
+## Add your own agent
 
 1. Create `agents/my_agent.py`:
 
@@ -121,7 +119,9 @@ agent_os = AgentOS(
 
 3. Restart: `docker compose restart`
 
-## Add MCP Servers
+## Add context providers
+
+### MCP servers
 
 See [docs/MCP_CONNECT.md](docs/MCP_CONNECT.md) for the full guide.
 
@@ -138,15 +138,21 @@ linear_context = MCPContextProvider(
     env={"LINEAR_API_KEY": getenv("LINEAR_API_KEY", "")},
     model=your_model,
 )
+
+agent = Agent(
+    tools=linear_context.get_tools(),
+    instructions=linear_context.instructions(),
+    # ...
+)
 ```
 
-## Connect to Slack
+### Slack
 
 See [docs/SLACK_CONNECT.md](docs/SLACK_CONNECT.md) for the full guide.
 
-## Local Development
+## Local development
 
-```bash
+```sh
 # Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
@@ -161,7 +167,7 @@ docker compose up -d agentos-db
 python -m app.main
 ```
 
-## Environment Variables
+## Environment variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -179,9 +185,10 @@ python -m app.main
 | `SLACK_BOT_TOKEN` | No | — | Slack bot token (enables Slack) |
 | `SLACK_SIGNING_SECRET` | No | — | Slack signing secret |
 
-## Learn More
+## Architecture
 
-- [Agno Documentation](https://docs.agno.com)
-- [AgentOS Documentation](https://docs.agno.com/agent-os/introduction)
-- [Context Providers Guide](https://docs.agno.com/context/overview)
+Built on [Agno](https://github.com/agno-agi/agno) and [AgentOS](https://docs.agno.com/agent-os/introduction?utm_source=github&utm_medium=starter-template).
+
+- [Agno Documentation](https://docs.agno.com?utm_source=github&utm_medium=starter-template)
+- [Context Providers Guide](https://docs.agno.com/context/overview?utm_source=github&utm_medium=starter-template)
 - [Agno Discord](https://agno.com/discord)
