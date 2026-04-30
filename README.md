@@ -31,13 +31,13 @@ AgentOS is now running at `http://localhost:8000`.
 Try these prompts:
 
 ```
-# Web Agent — searches via sub-agent
+# Search Agent — searches via sub-agent
 What are the latest developments in AI agents?
 
-# Web Tools Agent — direct tool access
+# Research Agent — direct tool access
 Search for recent OpenAI news
 
-# Workspace Agent — explores this codebase
+# Codebase Agent — explores this codebase
 What agents are available in this project?
 ```
 
@@ -47,9 +47,9 @@ Each agent uses a **context provider** to access an information source. The prov
 
 | Agent | Provider | Mode | Tools |
 |-------|----------|------|-------|
-| **Web Agent** | `WebContextProvider` | agent | `query_web` |
-| **Web Tools Agent** | `WebContextProvider` | tools | `web_search`, `web_fetch` |
-| **Workspace Agent** | `WorkspaceContextProvider` | agent | `query_workspace` |
+| **Search Agent** | `WebContextProvider` | agent | `query_web` |
+| **Research Agent** | `WebContextProvider` | tools | `web_search`, `web_fetch` |
+| **Codebase Agent** | `WorkspaceContextProvider` | agent | `query_workspace` |
 
 **Agent mode** wraps tools behind a sub-agent. Your agent sees one `query_<source>` tool — the sub-agent handles the underlying complexity.
 
@@ -112,7 +112,7 @@ my_agent = Agent(
 from agents.my_agent import my_agent
 
 agent_os = AgentOS(
-    agents=[web_agent, web_tools_agent, workspace_agent, my_agent],
+    agents=[search_agent, research_agent, codebase_agent, my_agent],
     # ...
 )
 ```

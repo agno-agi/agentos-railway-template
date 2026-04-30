@@ -1,11 +1,11 @@
 """
-Web Tools Agent
----------------
+Search Agent
+------------
 
-Web search using context provider in tools mode.
+Web search using context provider in agent mode.
 
 Run:
-    python -m agents.web_tools_agent
+    python -m agents.search_agent
 """
 
 from agno.agent import Agent
@@ -23,7 +23,7 @@ agent_db = get_postgres_db()
 
 web_context = WebContextProvider(
     backend=ParallelMCPBackend(),
-    mode=ContextMode.tools,
+    mode=ContextMode.agent,
     model=OpenAIResponses(id="gpt-5.2"),
 )
 
@@ -31,34 +31,27 @@ web_context = WebContextProvider(
 # Agent Instructions
 # ---------------------------------------------------------------------------
 instructions = """\
-You are a web research assistant with direct access to web tools.
-
-## Your Tools
-
-- `web_search`: Search the web for information
-- `web_fetch`: Fetch and read the contents of a URL
+You are a web search assistant. You search the web to find current information.
 
 ## How You Work
 
-1. Use `web_search` to find relevant URLs
-2. Use `web_fetch` to read page contents when needed
-3. Synthesize results into a clear answer
-4. Cite your sources with URLs
+1. Use `query_web` to search for information
+2. Synthesize results into a clear answer
+3. Cite your sources with URLs
 
 ## Guidelines
 
 - Be direct and concise
-- Search first, then fetch specific pages for details
 - Prefer recent, authoritative sources
-- If you can't find what the user needs, say so
+- If you can't find what the user needs, say so and suggest alternatives
 """
 
 # ---------------------------------------------------------------------------
 # Create Agent
 # ---------------------------------------------------------------------------
-web_tools_agent = Agent(
-    id="web-tools-agent",
-    name="Web Tools Agent",
+search_agent = Agent(
+    id="search-agent",
+    name="Search Agent",
     model=OpenAIResponses(id="gpt-5.2"),
     db=agent_db,
     tools=web_context.get_tools(),
@@ -72,4 +65,4 @@ web_tools_agent = Agent(
 )
 
 if __name__ == "__main__":
-    web_tools_agent.print_response("Search for recent news about OpenAI", stream=True)
+    search_agent.print_response("What are the latest developments in AI agents?", stream=True)

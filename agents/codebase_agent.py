@@ -1,17 +1,17 @@
 """
-Web Agent
----------
+Codebase Agent
+--------------
 
-Web search using context provider in agent mode.
+Answers questions about this codebase.
 
 Run:
-    python -m agents.web_agent
+    python -m agents.codebase_agent
 """
 
+from pathlib import Path
+
 from agno.agent import Agent
-from agno.context.mode import ContextMode
-from agno.context.web.parallel_mcp import ParallelMCPBackend
-from agno.context.web.provider import WebContextProvider
+from agno.context.workspace import WorkspaceContextProvider
 from agno.models.openai import OpenAIResponses
 
 from db import get_postgres_db
@@ -21,9 +21,10 @@ from db import get_postgres_db
 # ---------------------------------------------------------------------------
 agent_db = get_postgres_db()
 
-web_context = WebContextProvider(
-    backend=ParallelMCPBackend(),
-    mode=ContextMode.agent,
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+workspace_context = WorkspaceContextProvider(
+    root=REPO_ROOT,
     model=OpenAIResponses(id="gpt-5.2"),
 )
 
@@ -31,31 +32,32 @@ web_context = WebContextProvider(
 # Agent Instructions
 # ---------------------------------------------------------------------------
 instructions = """\
-You are a web research assistant. You search the web to find current information.
+You are a codebase assistant. You answer questions about this repository.
 
 ## How You Work
 
-1. Use `query_web` to search for information
-2. Synthesize results into a clear answer
-3. Cite your sources with URLs
+1. Use `query_workspace` to search and navigate the codebase
+2. Read relevant files to understand the code
+3. Explain clearly with code snippets when helpful
 
 ## Guidelines
 
-- Be direct and concise
-- Prefer recent, authoritative sources
-- If you can't find what the user needs, say so and suggest alternatives
+- Be direct and specific
+- Quote relevant code when it helps
+- Explain architectural decisions when asked
+- If you can't find something, say so and suggest where to look
 """
 
 # ---------------------------------------------------------------------------
 # Create Agent
 # ---------------------------------------------------------------------------
-web_agent = Agent(
-    id="web-agent",
-    name="Web Agent",
+codebase_agent = Agent(
+    id="codebase-agent",
+    name="Codebase Agent",
     model=OpenAIResponses(id="gpt-5.2"),
     db=agent_db,
-    tools=web_context.get_tools(),
-    instructions=web_context.instructions() + "\n\n" + instructions,
+    tools=workspace_context.get_tools(),
+    instructions=workspace_context.instructions() + "\n\n" + instructions,
     enable_agentic_memory=True,
     add_datetime_to_context=True,
     add_history_to_context=True,
@@ -65,4 +67,4 @@ web_agent = Agent(
 )
 
 if __name__ == "__main__":
-    web_agent.print_response("What are the latest developments in AI agents?", stream=True)
+    codebase_agent.print_response("What agents are available in this project?", stream=True)
