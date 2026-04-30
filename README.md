@@ -2,90 +2,57 @@
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/agentos)
 
-The minimal AgentOS foundation. Three example agents, web search via MCP, and one-script deploy to Railway.
+Deploy a multi-agent system on Railway.
 
-This template demonstrates **context providers** — a pattern for exposing information sources to agents without polluting their context with tool-specific quirks. Each provider wraps a source (web search, codebase, MCP server) and exposes it through one or two natural-language tools.
+## What's Included
 
-## Quick start
+| Agent | Pattern | Description |
+|-------|---------|-------------|
+| Search Agent | Context Provider (agent mode) | Web search via `query_web` |
+| Research Agent | Context Provider (tools mode) | Web search via `web_search`, `web_fetch` |
+| Codebase Agent | Context Provider (tools mode) | Codebase Q&A via `list_files`, `search_content`, `read_file` |
 
-> **Prerequisite:** Docker Desktop installed and running ([install guide](https://docs.docker.com/desktop/)).
+## Get Started
 
 ```sh
+# Clone the repo
 git clone https://github.com/agno-agi/agentos-railway-template.git starter
 cd starter
 
+# Add OPENAI_API_KEY
 cp example.env .env
-# set OPENAI_API_KEY in .env
+# Edit .env and add your key
 
+# Start the application
 docker compose up -d --build
 ```
 
-AgentOS is now running at `http://localhost:8000`.
+Confirm AgentOS is running at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-## Chat with your agents
+### Connect to the Web UI
 
-1. Open [os.agno.com](https://os.agno.com?utm_source=github&utm_medium=starter-template) and log in.
-2. Click **Add OS** → **Local** → enter `http://localhost:8000` → **Connect**.
-3. Select an agent and start chatting.
-
-Try these prompts:
-
-```
-# Search Agent — searches via sub-agent
-What are the latest developments in AI agents?
-
-# Research Agent — direct tool access
-Search for recent OpenAI news
-
-# Codebase Agent — explores this codebase
-What agents are available in this project?
-```
-
-## How it works
-
-Each agent uses a **context provider** to access an information source. The provider handles connection, pagination, retries, and source-specific quirks — the agent just calls `query_<source>`.
-
-| Agent | Provider | Mode | Tools |
-|-------|----------|------|-------|
-| **Search Agent** | `WebContextProvider` | agent | `query_web` |
-| **Research Agent** | `WebContextProvider` | tools | `web_search`, `web_fetch` |
-| **Codebase Agent** | `WorkspaceContextProvider` | tools | `list_files`, `search_content`, `read_file` |
-
-**Agent mode** wraps tools behind a sub-agent. Your agent sees one `query_<source>` tool — the sub-agent handles the underlying complexity.
-
-**Tools mode** flattens tools directly onto your agent. Cheaper (no sub-agent LLM hop), but tool names must be distinct.
-
-No API keys required except OpenAI — the web backend uses [Parallel MCP](https://search.parallel.ai/mcp), which is free.
+1. Open [os.agno.com](https://os.agno.com) and login
+2. Add OS → Local → `http://localhost:8000`
+3. Click "Connect"
 
 ## Deploy to Railway
 
-### One-click deploy
-
-Click the deploy button at the top of this README, or go to [railway.com/new/template/agentos](https://railway.com/new/template/agentos).
-
-You'll need to provide your `OPENAI_API_KEY`. The template automatically provisions PostgreSQL with pgvector.
-
-### CLI deploy
-
-**Prereqs:** [Railway CLI](https://docs.railway.app/guides/cli) installed and `railway login` run.
+Requires:
+- [Railway CLI](https://docs.railway.com/guides/cli)
+- `OPENAI_API_KEY` set in your environment
 
 ```sh
+railway login
+
 ./scripts/railway_up.sh
 ```
 
-This provisions PostgreSQL, deploys your app, and assigns a public domain (~5 min).
+The script provisions PostgreSQL, configures environment variables, and deploys your application.
 
-After code or env changes:
-
-```sh
-./scripts/railway_env.sh       # sync .env → Railway
-./scripts/railway_redeploy.sh  # push code updates
-```
-
-### Connect production to AgentOS
+### Connect to the Web UI
 
 1. Open [os.agno.com](https://os.agno.com)
-2. Click **Add OS** → **Live**
+2. Click "Add OS" → "Live"
 3. Enter your Railway domain
 
 ### Enable JWT authorization (recommended)
@@ -108,9 +75,60 @@ MIIBIjANBgkq...
 ./scripts/railway_redeploy.sh
 ```
 
-Every API call now runs signed-and-verified. See [AgentOS Security docs](https://docs.agno.com/agent-os/security/overview) for details.
+See [AgentOS Security docs](https://docs.agno.com/agent-os/security/overview) for details.
 
-## Add your own agent
+### Manage deployment
+
+```sh
+railway logs --service agent-os      # View logs
+railway open                         # Open dashboard
+railway up --service agent-os -d     # Update after changes
+```
+
+To stop services:
+```sh
+railway down --service agent-os
+railway down --service pgvector
+```
+
+## The Agents
+
+### Search Agent
+
+Web search using a context provider in **agent mode**. The provider wraps tools behind a sub-agent — your agent sees one `query_web` tool.
+
+**Try it:**
+
+```
+What are the latest developments in AI agents?
+Search for recent OpenAI news
+```
+
+### Research Agent
+
+Web research using a context provider in **tools mode**. Tools are flattened directly onto the agent: `web_search` and `web_fetch`.
+
+**Try it:**
+
+```
+Search for Anthropic's latest research
+Find and summarize the top 3 results about LLM agents
+```
+
+### Codebase Agent
+
+Answers questions about this repository using `WorkspaceContextProvider`.
+
+**Try it:**
+
+```
+What agents are available in this project?
+How does the database connection work?
+```
+
+## Common Tasks
+
+### Add your own agent
 
 1. Create `agents/my_agent.py`:
 
@@ -134,45 +152,60 @@ my_agent = Agent(
 from agents.my_agent import my_agent
 
 agent_os = AgentOS(
+    name="AgentOS",
     agents=[search_agent, research_agent, codebase_agent, my_agent],
-    # ...
+    ...
 )
 ```
 
 3. Restart: `docker compose restart`
 
-## Add context providers
+### Add context providers
 
-### MCP servers
+See [docs/MCP_CONNECT.md](docs/MCP_CONNECT.md) for connecting MCP servers.
 
-See [docs/MCP_CONNECT.md](docs/MCP_CONNECT.md) for the full guide.
+See [docs/SLACK_CONNECT.md](docs/SLACK_CONNECT.md) for Slack integration.
 
-Quick example — add Linear:
+### Add tools to an agent
+
+Agno includes 100+ tool integrations. See the [full list](https://docs.agno.com/tools/toolkits).
 
 ```python
-from agno.context.mcp import MCPContextProvider
+from agno.tools.slack import SlackTools
+from agno.tools.google_calendar import GoogleCalendarTools
 
-linear_context = MCPContextProvider(
-    server_name="linear",
-    transport="stdio",
-    command="npx",
-    args=["-y", "@linear/mcp"],
-    env={"LINEAR_API_KEY": getenv("LINEAR_API_KEY", "")},
-    model=your_model,
-)
-
-agent = Agent(
-    tools=linear_context.get_tools(),
-    instructions=linear_context.instructions(),
-    # ...
+my_agent = Agent(
+    ...
+    tools=[
+        SlackTools(),
+        GoogleCalendarTools(),
+    ],
 )
 ```
 
-### Slack
+### Add dependencies
 
-See [docs/SLACK_CONNECT.md](docs/SLACK_CONNECT.md) for the full guide.
+1. Edit `pyproject.toml`
+2. Regenerate requirements: `./scripts/generate_requirements.sh`
+3. Rebuild: `docker compose up -d --build`
 
-## Local development
+### Use a different model provider
+
+1. Add your API key to `.env` (e.g., `ANTHROPIC_API_KEY`)
+2. Update agents to use the new provider:
+
+```python
+from agno.models.anthropic import Claude
+
+model=Claude(id="claude-sonnet-4-5")
+```
+3. Add dependency: `anthropic` in `pyproject.toml`
+
+---
+
+## Local Development
+
+For development without Docker:
 
 ```sh
 # Install uv
@@ -182,35 +215,28 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ./scripts/venv_setup.sh
 source .venv/bin/activate
 
-# Start PostgreSQL
+# Start PostgreSQL (required)
 docker compose up -d agentos-db
 
 # Run the app
 python -m app.main
 ```
 
-## Environment variables
+## Environment Variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `OPENAI_API_KEY` | Yes | — | OpenAI API key |
+| `OPENAI_API_KEY` | Yes | - | OpenAI API key |
 | `PORT` | No | `8000` | API server port |
 | `DB_HOST` | No | `localhost` | Database host |
 | `DB_PORT` | No | `5432` | Database port |
 | `DB_USER` | No | `ai` | Database user |
 | `DB_PASS` | No | `ai` | Database password |
 | `DB_DATABASE` | No | `ai` | Database name |
-| `DB_DRIVER` | No | `postgresql+psycopg` | SQLAlchemy driver |
 | `RUNTIME_ENV` | No | `prd` | Set to `dev` for auto-reload |
-| `WAIT_FOR_DB` | No | `False` | Wait for database before starting |
-| `AGNO_DEBUG` | No | `False` | Enable Agno debug logging |
-| `SLACK_BOT_TOKEN` | No | — | Slack bot token (enables Slack) |
-| `SLACK_SIGNING_SECRET` | No | — | Slack signing secret |
 
-## Architecture
+## Learn More
 
-Built on [Agno](https://github.com/agno-agi/agno) and [AgentOS](https://docs.agno.com/agent-os/introduction?utm_source=github&utm_medium=starter-template).
-
-- [Agno Documentation](https://docs.agno.com?utm_source=github&utm_medium=starter-template)
-- [Context Providers Guide](https://docs.agno.com/context/overview?utm_source=github&utm_medium=starter-template)
+- [Agno Documentation](https://docs.agno.com)
+- [AgentOS Documentation](https://docs.agno.com/agent-os/introduction)
 - [Agno Discord](https://agno.com/discord)
