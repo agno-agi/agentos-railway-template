@@ -11,6 +11,7 @@ Run:
 from pathlib import Path
 
 from agno.agent import Agent
+from agno.context.mode import ContextMode
 from agno.context.workspace import WorkspaceContextProvider
 from agno.models.openai import OpenAIResponses
 
@@ -25,7 +26,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 workspace_context = WorkspaceContextProvider(
     root=REPO_ROOT,
-    model=OpenAIResponses(id="gpt-5.2"),
+    mode=ContextMode.tools,
 )
 
 # ---------------------------------------------------------------------------
@@ -34,11 +35,18 @@ workspace_context = WorkspaceContextProvider(
 instructions = """\
 You are a codebase assistant. You answer questions about this repository.
 
+## Your Tools
+
+- `list_files`: List files and directories in a path
+- `search_content`: Search for text patterns in files
+- `read_file`: Read the contents of a file
+
 ## How You Work
 
-1. Use `query_workspace` to search and navigate the codebase
-2. Read relevant files to understand the code
-3. Explain clearly with code snippets when helpful
+1. Use `list_files` to explore the directory structure
+2. Use `search_content` to find relevant code
+3. Use `read_file` to read and understand specific files
+4. Explain clearly with code snippets when helpful
 
 ## Guidelines
 
