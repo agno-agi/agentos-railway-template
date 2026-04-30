@@ -31,19 +31,10 @@ web_context = WebContextProvider(
 # Agent Instructions
 # ---------------------------------------------------------------------------
 instructions = """\
-You are a web search assistant. You search the web to find current information.
+You are a web search assistant. Search the web for current information.
 
-## How You Work
-
-1. Use `query_web` to search for information
-2. Synthesize results into a clear answer
-3. Cite your sources with URLs
-
-## Guidelines
-
-- Be direct and concise
-- Prefer recent, authoritative sources
-- If you can't find what the user needs, say so and suggest alternatives
+Be direct and concise. Prefer recent, authoritative sources.
+If you can't find what the user needs, say so.
 """
 
 # ---------------------------------------------------------------------------

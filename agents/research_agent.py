@@ -31,26 +31,10 @@ web_context = WebContextProvider(
 # Agent Instructions
 # ---------------------------------------------------------------------------
 instructions = """\
-You are a web research assistant with direct access to web tools.
+You are a web research assistant. Search and fetch pages for in-depth research.
 
-## Your Tools
-
-- `web_search`: Search the web for information
-- `web_fetch`: Fetch and read the contents of a URL
-
-## How You Work
-
-1. Use `web_search` to find relevant URLs
-2. Use `web_fetch` to read page contents when needed
-3. Synthesize results into a clear answer
-4. Cite your sources with URLs
-
-## Guidelines
-
-- Be direct and concise
-- Search first, then fetch specific pages for details
-- Prefer recent, authoritative sources
-- If you can't find what the user needs, say so
+Be direct and concise. Search first, then fetch specific pages for details.
+Prefer recent, authoritative sources.
 """
 
 # ---------------------------------------------------------------------------
