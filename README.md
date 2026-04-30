@@ -14,6 +14,8 @@ Deploy a multi-agent system on Railway.
 
 ## Get Started
 
+> **Prerequisite:** Docker Desktop installed and running.
+
 ```sh
 # Clone the repo
 git clone https://github.com/agno-agi/agentos-railway-template.git starter
@@ -29,7 +31,7 @@ docker compose up -d --build
 
 Confirm AgentOS is running at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-### Connect to the Web UI
+### Connect to AgentOS
 
 1. Open [os.agno.com](https://os.agno.com) and login
 2. Add OS → Local → `http://localhost:8000`
@@ -49,7 +51,7 @@ railway login
 
 The script provisions PostgreSQL, configures environment variables, and deploys your application.
 
-### Connect to the Web UI
+### Connect production to AgentOS
 
 1. Open [os.agno.com](https://os.agno.com)
 2. Click "Add OS" → "Live"
