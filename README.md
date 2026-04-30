@@ -88,6 +88,28 @@ After code or env changes:
 2. Click **Add OS** → **Live**
 3. Enter your Railway domain
 
+### Enable JWT authorization (recommended)
+
+Production endpoints should require authorization. To enable:
+
+1. In AgentOS, enable **Token Based Authorization** for your OS
+2. Copy the public key and add to your env:
+
+```sh
+JWT_VERIFICATION_KEY=-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkq...
+-----END PUBLIC KEY-----
+```
+
+3. Sync and redeploy:
+
+```sh
+./scripts/railway_env.sh
+./scripts/railway_redeploy.sh
+```
+
+Every API call now runs signed-and-verified. See [AgentOS Security docs](https://docs.agno.com/agent-os/security/overview) for details.
+
 ## Add your own agent
 
 1. Create `agents/my_agent.py`:
