@@ -13,8 +13,9 @@ from pathlib import Path
 
 from agno.os import AgentOS
 
-from agents.knowledge_agent import knowledge_agent
-from agents.mcp_agent import mcp_agent
+from agents.web_agent import web_agent
+from agents.web_tools_agent import web_tools_agent
+from agents.workspace_agent import workspace_agent
 from db import get_postgres_db
 
 # ---------------------------------------------------------------------------
@@ -25,7 +26,7 @@ agent_os = AgentOS(
     tracing=True,
     scheduler=True,
     db=get_postgres_db(),
-    agents=[knowledge_agent, mcp_agent],
+    agents=[web_agent, web_tools_agent, workspace_agent],
     config=str(Path(__file__).parent / "config.yaml"),
 )
 
