@@ -69,7 +69,7 @@ instructions = """..."""
 my_agent = Agent(
     id="my-agent",
     name="My Agent",
-    model=OpenAIResponses(id="gpt-5.2"),
+    model=OpenAIResponses(id="gpt-5.4"),
     db=agent_db,
     instructions=instructions,
     # Context options (all agents use these)
@@ -180,7 +180,7 @@ Agno supports 40+ model providers. Common options:
 ```python
 # OpenAI (default in this project)
 from agno.models.openai import OpenAIResponses
-model = OpenAIResponses(id="gpt-5.2")
+model = OpenAIResponses(id="gpt-5.4")
 
 # Anthropic Claude
 from agno.models.anthropic import Claude

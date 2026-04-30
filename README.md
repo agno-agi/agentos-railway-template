@@ -100,7 +100,7 @@ from db import get_postgres_db
 my_agent = Agent(
     id="my-agent",
     name="My Agent",
-    model=OpenAIResponses(id="gpt-5.2"),
+    model=OpenAIResponses(id="gpt-5.4"),
     db=get_postgres_db(),
     instructions="You are a helpful assistant.",
 )

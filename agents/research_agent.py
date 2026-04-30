@@ -24,7 +24,7 @@ agent_db = get_postgres_db()
 web_context = WebContextProvider(
     backend=ParallelMCPBackend(),
     mode=ContextMode.tools,
-    model=OpenAIResponses(id="gpt-5.2"),
+    model=OpenAIResponses(id="gpt-5.4"),
 )
 
 # ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ Prefer recent, authoritative sources.
 research_agent = Agent(
     id="research-agent",
     name="Research Agent",
-    model=OpenAIResponses(id="gpt-5.2"),
+    model=OpenAIResponses(id="gpt-5.4"),
     db=agent_db,
     tools=web_context.get_tools(),
     instructions=web_context.instructions() + "\n\n" + instructions,
