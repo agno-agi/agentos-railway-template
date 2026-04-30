@@ -24,7 +24,7 @@ agent_db = get_postgres_db()
 web_context = WebContextProvider(
     backend=ParallelMCPBackend(),
     mode=ContextMode.agent,
-    model=OpenAIResponses(id="gpt-5.4"),
+    model=OpenAIResponses(id="gpt-5.5"),
 )
 
 # ---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ If you can't find what the user needs, say so.
 search_agent = Agent(
     id="search-agent",
     name="Search Agent",
-    model=OpenAIResponses(id="gpt-5.4"),
+    model=OpenAIResponses(id="gpt-5.5"),
     db=agent_db,
     tools=web_context.get_tools(),
     instructions=web_context.instructions() + "\n\n" + instructions,

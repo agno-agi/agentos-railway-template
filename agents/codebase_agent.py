@@ -45,7 +45,7 @@ If you can't find something, say so.
 codebase_agent = Agent(
     id="codebase-agent",
     name="Codebase Agent",
-    model=OpenAIResponses(id="gpt-5.4"),
+    model=OpenAIResponses(id="gpt-5.5"),
     db=agent_db,
     tools=workspace_context.get_tools(),
     instructions=workspace_context.instructions() + "\n\n" + instructions,
