@@ -19,7 +19,7 @@ Open with a single branching question — don't dump five questions at once:
 
 > Do you have an agent in mind, or would you like a guided experience?
 
-If the user immediately describes a concrete agent ("build me a GitHub PR reviewer"), they've picked the second branch — skip to **Specifics**.
+If the user immediately describes a concrete agent ("build me a GitHub PR reviewer"), treat that as the specific-agent branch and skip to **Specifics**.
 
 ### Guided experience
 
@@ -50,6 +50,15 @@ If the user came in with a concrete agent in mind, ask all five below in one con
    - (c) build anyway and surface the auth error during smoke test.
 5. **Slug** — short kebab-case id (e.g. `linear-agent`). Used as the agent's `id`, in URLs, and in `app/config.yaml`. Propose one based on the agent's purpose.
 
+   Before accepting the slug, convert it to `<slug_underscore>` (replace `-` with `_`) and check for collisions:
+
+   ```bash
+   test ! -e agents/<slug_underscore>.py
+   rg -n 'id="<slug>"|<slug>:' agents app/main.py app/config.yaml
+   ```
+
+   If the file, agent id, or quick-prompt key already exists, ask for a different slug.
+
 Model defaults to `gpt-5.4` via `app.settings.default_model()` — override only if the user asks.
 
 ## 2. Ground the design in agno docs
@@ -64,7 +73,7 @@ For each toolkit, capture four things:
 - **Import path** (e.g. `from agno.tools.exa import ExaTools`).
 - **Constructor args** that matter for this agent (categories, domains, max_results, etc.).
 - **Required env vars** — feed these back into Step 1, item 4.
-- **Pip dependencies** — some toolkits need extra packages (`exa-py`, `anthropic`, `firecrawl-py`, `linear-sdk`, …). The toolkit's `Prerequisites` section lists them. Capture now, install in Step 6.
+- **Pip dependencies** — some toolkits need extra packages (`exa-py`, `anthropic`, `firecrawl-py`, `linear-sdk`, …). Capture the exact package names from the toolkit's `Prerequisites` section. If any are needed, add them to `[project].dependencies` in [`pyproject.toml`](../pyproject.toml); `requirements.txt` is generated from that file in Step 7. Do not edit `requirements.txt` by hand.
 
 If the toolkit's docs page has no `Prerequisites` or `Authentication` section, the toolkit is keyless and needs no env vars or extra pip deps (e.g. HackerNews, ArXiv, Wikipedia, DuckDuckGo).
 
@@ -115,6 +124,7 @@ Notes:
 - Don't add a `if __name__ == "__main__":` smoke block — the platform-driven workflow is the smoke test.
 - If the agent uses an `MCPTools` instance, pass it through `tools=[mcp_tools]` directly. AgentOS connects/closes MCP servers automatically — don't manage the lifecycle yourself.
 - If a context provider needs a model, reuse `default_model()` so the model id stays in one place.
+- For context-provider agents, pass `tools=<context_provider>.get_tools()` and append the provider's instructions: `instructions=INSTRUCTIONS + "\n\n" + <context_provider>.instructions(),`
 
 ## 4. Register in `app/main.py`
 
@@ -143,9 +153,28 @@ chat:
       - "Third example prompt"
 ```
 
-## 6. Reload the container
+## 6. Keep evals in sync
 
-After Step 4, **always restart the container** — uvicorn's hot-reload doesn't reliably pick up newly registered modules.
+Before restarting, check whether adding this agent invalidates any hard-coded eval assumptions:
+
+```bash
+rg -n "two registered agents|registered agents|agents are registered|web-search|code-search" evals/cases.py
+```
+
+If `code_search_lists_registered_agents` still describes `web-search` and `code-search` as "the two registered agents", update its `criteria` to include `<slug>` and remove the fixed count. Use this rubric shape:
+
+```python
+criteria=(
+    "Lists all registered agents including `web-search`, `code-search`, and `<slug>`. "
+    "Does not omit registered agents or invent unregistered ones. May reference app/main.py."
+)
+```
+
+Do not run the full eval suite automatically — it hits OpenAI and can take minutes. If the user wants a regression check, ask first, then run `python -m evals` or hand off to [`docs/eval-and-improve.md`](eval-and-improve.md).
+
+## 7. Reload the container
+
+After Step 4 and Step 6, **always restart the container** — uvicorn's hot-reload doesn't reliably pick up newly registered modules.
 
 - **No new pip deps** (the common case):
 
@@ -153,7 +182,7 @@ After Step 4, **always restart the container** — uvicorn's hot-reload doesn't 
   docker compose restart agentos-api
   ```
 
-- **New pip deps added in Step 2** — update the lockfile and rebuild:
+- **New pip deps added in Step 2** — after editing [`pyproject.toml`](../pyproject.toml), regenerate the lockfile and rebuild:
 
   ```bash
   ./scripts/generate_requirements.sh
@@ -166,9 +195,9 @@ Then verify the agent shows up in the registry before smoke-testing:
 curl -s http://localhost:8000/agents | jq -r '.[].id' | grep <slug>
 ```
 
-If `<slug>` isn't in the list, the restart didn't pick up your edits — jump to Step 8.
+If `<slug>` isn't in the list, the restart didn't pick up your edits — jump to Step 9.
 
-## 7. Smoke test
+## 8. Smoke test
 
 Poll `/health` until the API is back up, then probe the agent with **one of the quick prompts you wrote in Step 5** (so the smoke test exercises what real users will hit). Substitute `<slug>` and the `message=` value before running:
 
@@ -195,7 +224,7 @@ docker logs agentos-api --since 30s 2>&1 | grep -E "Running: \w+\(" | head -40
 
 (`Running: <tool>(` is the line shape agno emits per tool call when `AGNO_DEBUG=True`, which compose sets for dev. Without `AGNO_DEBUG`, expect no matches — `HTTP 200` and a non-empty body are then your only signal.)
 
-## 8. If the smoke test fails
+## 9. If the smoke test fails
 
 - **HTTP 404** — the agent isn't registered, the container wasn't restarted, or your edits aren't reaching the bind-mount. Re-check Step 4 and Step 6. If both look right, run `docker inspect agentos-api --format '{{ range .Mounts }}{{ .Source }} → {{ .Destination }}{{ "\n" }}{{ end }}'` to confirm `/app` is bound to *this* repo's path (a stale clone or a different worktree is a common cause).
 - **HTTP 5xx** — read `docker logs agentos-api --tail 50` for the traceback. Most failures are import errors, missing env vars, or a typo in the agent's `tools=` list.
@@ -204,11 +233,25 @@ docker logs agentos-api --since 30s 2>&1 | grep -E "Running: \w+\(" | head -40
 
 Iterate at most 2-3 times on the prompt before stopping and surfacing the question to the user.
 
-## 9. Done
+## 10. Format and validate
 
-When the smoke test passes:
+After the smoke test passes, run the local quality checks if the repo venv is available:
+
+```bash
+source .venv/bin/activate
+./scripts/format.sh
+./scripts/validate.sh
+```
+
+If `.venv` is missing, do not block the workflow on setup; tell the user validation was skipped and point them to `./scripts/venv_setup.sh`. If validation fails in files you did not touch, report that separately from the new-agent changes.
+
+## 11. Done
+
+When the smoke test passes and registry-sensitive eval assertions are synced:
 
 1. Tell the user the agent's slug. They can chat with it at `https://os.agno.com` (if their OS is connected there) or against `http://localhost:8000` directly for local-only.
 2. Mention `docs/improve-agent.md` for the next-step iteration loop if behavior needs tuning.
+3. Tell the user whether [`evals/cases.py`](../evals/cases.py) was updated (especially `code_search_lists_registered_agents`).
+4. If the full eval suite was not run, say: "Full eval suite not run; use `Run docs/eval-and-improve.md` for the regression pass."
 
 A simple agent usually takes 5-10 minutes from "Run docs/create-new-agent.md" to working. More if the user asks for custom tools or an MCP server with auth.
