@@ -15,11 +15,12 @@ This is a **recurring sweep** — meant to be re-run regularly. On a clean repo 
 
 - Stale file paths in any doc.
 - Missing entries in [`example.env`](../example.env) for env vars the code actually reads.
-- Stale entries in `example.env` for vars nothing reads (delete + note in the report — could be intentional).
+- Stale entries in `example.env` for vars nothing reads — delete unless the surrounding comment block describes them as optional/future ("alternate model providers", "future feature"). Flag instead of fixing if intent is unclear.
 - Architecture diagram in `AGENTS.md` / `README.md` missing a registered agent.
 - New agent file on disk not yet imported in [`app/main.py`](../app/main.py) (add the import + append to `agents=[...]`).
 - Missing `quick_prompts` block for a registered agent (draft three from the agent's `INSTRUCTIONS`; flag the new entries so the user can refine).
 - Missing or wrong cross-links between `docs/*.md` files.
+- Single-line factual claim in one doc contradicted by another doc or by code (e.g. one doc says "hot-reload picks up new agents" while another says a restart is required) — auto-fix the doc, not the code.
 
 **Flag, don't fix** (surface for the user):
 
@@ -31,8 +32,8 @@ This is a **recurring sweep** — meant to be re-run regularly. On a clean repo 
 
 ## 0. Preconditions
 
-- `agentos-api` running: `docker compose ps`. If not, ask the user to `docker compose up -d --build` first — Step 4 needs a live container.
-- `curl -sSf http://localhost:8000/health` returns 200.
+- Live container reachable: `curl -sSf http://localhost:8000/health` returns 200. If not, ask the user to `docker compose up -d --build` first — Step 4 needs a live container. (`docker compose ps` is unreliable from worktrees or alternate clones — trust the health probe.)
+- If multiple worktrees of this repo exist on disk, only one container can bind to localhost:8000 — Step 4 will reflect whichever repo last brought the container up, not necessarily this worktree's `app/main.py`. Step 4 has a cross-check for this.
 - Recommend a feature branch so auto-fixes are easy to revert: `git checkout -b review/$(date +%Y%m%d)`.
 
 ## 1. Scope check
@@ -41,7 +42,7 @@ Restate the surface area in 4-5 lines so the user can redirect before you read e
 
 - Top-level docs: [`README.md`](../README.md), [`AGENTS.md`](../AGENTS.md), [`docs/*.md`](../docs/), [`example.env`](../example.env).
 - Code: [`app/`](../app/), [`agents/`](../agents/), [`db/`](../db/), [`evals/`](../evals/), [`scripts/`](../scripts/).
-- Configs: [`compose.yaml`](../compose.yaml), [`Dockerfile`](../Dockerfile), [`pyproject.toml`](../pyproject.toml), [`railway.json`](../railway.json), [`.mcp.json`](../.mcp.json).
+- Configs: [`compose.yaml`](../compose.yaml), [`Dockerfile`](../Dockerfile), [`pyproject.toml`](../pyproject.toml), [`railway.json`](../railway.json).
 
 Skip: `.venv/`, `*_cache/`, `.git/`, anything generated.
 
@@ -75,8 +76,18 @@ The bulk of the work. Diff each pair below; auto-fix per the rules at the top.
 | Architecture diagrams match registered agents | `README.md`, `AGENTS.md` Architecture sections | New agent missing from the tree |
 | Eval cases reference real agents + tools | `evals/cases.py` ↔ `agents/` | Slug renamed or tool removed |
 | `Key Files` table in `AGENTS.md` matches reality | `AGENTS.md` ↔ filesystem | Renamed file, deleted file, new file not listed |
+| Cross-links between `docs/*.md` files resolve | `docs/*.md` ↔ `docs/*.md` filenames | Renamed file, broken link |
+| `.mcp.json` servers and the docs that reference them agree | `.mcp.json` ↔ `docs/*.md` | URL changed, server renamed |
 
 ## 4. Live container smoke
+
+First, confirm the live container is serving *this* repo's agents — not a stale clone or a different worktree. Compare the API's registered agents against what you parsed from `app/main.py`:
+
+```bash
+curl -s http://localhost:8000/agents | jq -r '.[].id' | sort
+```
+
+If the list doesn't match the slugs in `agents=[...]`, flag it — Step 4 will be testing the wrong code. Common causes: the container is bound to a different repo path, or `docker compose restart` is needed. Stop and surface to the user.
 
 For each agent registered in `app/main.py`, hit it with one of its `quick_prompts`:
 
@@ -94,8 +105,10 @@ jq -r '.content // .' < /tmp/review-<slug>.json | head -20
 Pass = HTTP 200, non-empty content, no errors in the container logs:
 
 ```bash
-docker logs agentos-api --since 30s 2>&1 | grep -E "Tool Calls|Running:|Error" | head -40
+docker logs agentos-api --since 30s 2>&1 | grep -E "Running: \w+\(" | head -40
 ```
+
+(`Running: <tool>(` is the tool-call line shape agno emits when `AGNO_DEBUG=True`, which compose sets for dev. Without `AGNO_DEBUG` expect no matches — `HTTP 200` and a non-empty body are then your only signal.)
 
 Quality issues (response is plausible but wrong, missing citations, wrong tool fired) are out of scope — note them and recommend [`docs/improve-agent.md`](improve-agent.md).
 
@@ -115,11 +128,13 @@ source .venv/bin/activate  # if not already active
 
 > Run `python -m evals` to confirm no agent regressed? (Hits OpenAI; takes 1-3 minutes.)
 
-If yes, run the full suite. If any case fails, recommend [`docs/eval-and-improve.md`](eval-and-improve.md) — don't fix here.
+If yes, run `python -m evals`. If any case fails, add it to "Needs your call" with [`docs/eval-and-improve.md`](eval-and-improve.md) as the recommended follow-up. If the user declines, skip this step entirely — it does not affect the rest of the report.
 
 ## 7. Report
 
-Wrap up with three blocks, in order:
+If nothing was fixed and nothing flagged, skip the first two blocks below and just print: *"Repo is consistent and the live container is healthy. No follow-up needed."* No commit suggested.
+
+Otherwise, wrap up with three blocks, in order:
 
 **Fixed automatically** — one line per change, with file path. Terse.
 
@@ -132,6 +147,6 @@ git diff --stat
 ```
 
 - Suggested commit message — `chore: review-and-improve sweep` plus one short bullet per fix bucket.
-- Recommended follow-up — usually [`docs/improve-agent.md`](improve-agent.md) (if a live agent looked off) or [`docs/eval-and-improve.md`](eval-and-improve.md) (if evals failed). If nothing surfaced, just say "Repo is consistent and the live container is healthy. No follow-up needed."
+- Recommended follow-up — usually [`docs/improve-agent.md`](improve-agent.md) (if a live agent looked off) or [`docs/eval-and-improve.md`](eval-and-improve.md) (if evals failed).
 
-A clean sweep takes 3-5 minutes. A dirty one is 15-30, mostly because live smoke surfaces agent regressions you have to triage.
+A clean sweep takes 3-5 minutes (10+ if the venv needs to be created). A dirty one is 15-30, mostly because live smoke surfaces agent regressions you have to triage.

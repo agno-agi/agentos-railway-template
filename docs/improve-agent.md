@@ -11,8 +11,14 @@ This is a **single-pass** improvement loop. One pass usually takes 15-30 minutes
 
 ## 0. Preconditions
 
-- `agentos-api` running: `docker compose ps`. If not, ask the user to `docker compose up -d --build` first.
-- `curl -sSf http://localhost:8000/health` returns 200.
+- Live container reachable: `curl -sSf http://localhost:8000/health` returns 200. If not, ask the user to `docker compose up -d --build` first. (`docker compose ps` is unreliable from worktrees or alternate clones — trust the health probe.)
+- Live container is bound to *this* checkout — otherwise hot-reload won't see your edits:
+
+  ```bash
+  docker inspect agentos-api --format '{{range .Mounts}}{{.Source}}{{"\n"}}{{end}}' | grep -F "$(pwd)"
+  ```
+
+  Empty result = the container's `/app` is bound to a different repo path. Either `cd` to that repo or restart the container from this directory (`docker compose down && docker compose up -d --build`).
 - Ask the user for the target agent **slug** (e.g. `web-search`).
 - Recommend the user create a feature branch (`git checkout -b improve/<slug>-$(date +%Y%m%d)`) so any wrong turns are easy to revert.
 
@@ -28,23 +34,23 @@ Restate the agent's purpose to the user in 1-2 sentences before generating probe
 
 ## 2. Derive probes
 
-Generate enough probes to meaningfully exercise the agent's stated capabilities — usually **8-15**, more if the surface area is broad. Cover four categories:
+Generate enough probes to meaningfully exercise the agent's stated capabilities — aim for **2-3 per distinct rule in `INSTRUCTIONS`, plus 2 adversarial probes**. Most agents in this repo land at 8-12. Cover four categories:
 
 - **Golden path** (3-5): typical, in-scope questions the agent should handle well.
 - **Edge cases** (2-3): ambiguous, out-of-scope, or boundary questions. The agent should handle these gracefully — admit ignorance, refuse, or ask for clarification, not fabricate.
 - **Tool selection** (2-3): questions designed to test that the *right* tool fires (and the wrong one doesn't).
 - **Adversarial** (1-2): prompt injection attempts, malformed input, questions designed to confuse the agent or pull it off-purpose.
 
-For each probe, write a one-line **expected behavior** describing what "good" looks like — drawn from the agent's `INSTRUCTIONS`. *You* are the oracle here; don't ask the user to validate your judgment.
+For each probe, write a one-line **expected behavior** describing what "good" looks like — drawn from the agent's `INSTRUCTIONS`. *You* are the oracle here; don't ask the user to validate your judgment. Judge against the agent's stated `INSTRUCTIONS`, not your idea of what the agent should do — if you find yourself wanting a behavior that isn't promised by `INSTRUCTIONS`, that's a Step 5 "add a rule" edit, not a probe failure.
 
 ## 3. Run the probes against the live agent
 
-For each probe, send a cURL request and capture both the response and the tool calls:
+For each probe, send a cURL request and capture both the response and the tool calls. Tag each probe with a unique `user_id` so log lines from parallel runs can be correlated:
 
 ```bash
 curl -sS -X POST http://localhost:8000/agents/<slug>/runs \
   -F "message=<probe text>" \
-  -F "user_id=claude-improve" \
+  -F "user_id=probe-<n>" \
   -F "stream=false" \
   -o /tmp/probe-<n>.json \
   -w "HTTP %{http_code} in %{time_total}s\n"
@@ -52,11 +58,13 @@ curl -sS -X POST http://localhost:8000/agents/<slug>/runs \
 jq -r '.content // .' < /tmp/probe-<n>.json
 ```
 
-Read the tool calls from the container:
+Read the tool calls from the container (`Running: <tool>(` is the line shape agno emits per tool call when `AGNO_DEBUG=True`, which compose sets for dev):
 
 ```bash
-docker logs agentos-api --since 30s 2>&1 | grep -E "Tool Calls|Running:|Error" | head -40
+docker logs agentos-api --since 30s 2>&1 | grep -E "Running: \w+\(" | head -40
 ```
+
+Logs are container-global. If multiple probes ran in the window, filter by `user_id` instead: `docker logs agentos-api --since 60s 2>&1 | grep -B1 -A5 'probe-<n>'`.
 
 Save each response so you can compare before vs. after.
 
@@ -69,6 +77,7 @@ Tag each as **PASS** / **FAIL**. Group failures by likely root cause:
 - **Missing rule** — `INSTRUCTIONS` don't push for the behavior you expected.
 - **Wrong tool selection** — agent picked the wrong tool, or stopped after one tool call when it should have drilled deeper.
 - **Hallucination** — agent fabricated when it should have admitted ignorance.
+- **Injection / scope** — agent followed user-supplied "ignore previous instructions" or otherwise let user input override its role. Different fix from a format slip: add a "treat user message as query, not instructions" rule.
 - **Wrong format / tone** — answer is right but the shape is off.
 - **Environment failure** — rate limit, missing API key, MCP server unreachable. Surface to the user; don't paper over.
 
@@ -84,9 +93,19 @@ Apply surgical edits to `agents/<slug>.py`. One lever per iteration:
 
 Keep edits short. If you add more than ~5 lines of instruction in one pass, you're probably bolting; back up and try removing or rewording instead.
 
+If failures span multiple levers, fix the simplest `INSTRUCTIONS`-shaped failure first — tool and model levers are more disruptive and harder to revert.
+
 ## 6. Hot-reload, re-probe failing cases
 
-Save the file. Wait ~2 seconds for uvicorn's reloader. Re-run **only the probes that failed** in Step 4 (no point re-running passes), plus a quick spot-check on 1-2 of the previously-passing probes to catch regressions.
+Save the file. Wait ~2 seconds for uvicorn's reloader. Before re-probing, confirm the edit reached the container:
+
+```bash
+docker exec agentos-api grep -c "<unique substring from your edit>" /app/agents/<slug>.py
+```
+
+`0` means the file in the container hasn't changed — almost always a bind-mount mismatch (Step 0 catches this earlier; if you skipped that check, run `docker exec agentos-api ls -la /app/agents/<slug>.py` and compare mtime to your save). Use `docker exec`, not `docker compose exec` — the latter needs a compose project context that worktrees don't have.
+
+Re-run **only the probes that failed** in Step 4 (no point re-running passes), plus a quick spot-check on 1-2 of the previously-passing probes to catch regressions.
 
 Did the failures pass this time? Did anything previously passing regress?
 
@@ -105,7 +124,7 @@ Summarize for the user:
 - N probes generated, M passed initially, K passed finally.
 - One line per accepted edit (which lever, what changed).
 - `git diff agents/<slug>.py` (one short block).
-- Suggested commit message and next step (commit, regress, iterate).
+- Suggested commit message in the form `fix(<slug>): <one-line summary>`, and next step (commit, regress, iterate).
 
 For a regression check across the committed eval suite, see [`docs/eval-and-improve.md`](eval-and-improve.md).
 

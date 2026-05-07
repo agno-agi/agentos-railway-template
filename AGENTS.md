@@ -80,8 +80,6 @@ Every agent file has the same shape:
 =============
 """
 
-from __future__ import annotations
-
 from agno.agent import Agent
 
 from app.settings import default_model
@@ -131,7 +129,7 @@ Knowledge bases use PgVector with `SearchType.hybrid` and `text-embedding-3-smal
 Two options:
 
 1. **Hand it to Claude Code** — paste `Run docs/create-new-agent.md` into a Claude Code session pointed at this repo. Claude asks the user what the agent should do, generates the file, registers it, smoke-tests it.
-2. **Do it manually** — create `agents/<slug>.py`, register in `app/main.py`, add prompts to `app/config.yaml`. Hot-reload picks the new agent up automatically.
+2. **Do it manually** — create `agents/<slug>.py`, register in `app/main.py`, add prompts to `app/config.yaml`. Then `docker compose restart agentos-api` — uvicorn hot-reload is unreliable for newly-registered modules, so a restart is required for the new agent to load.
 
 ## Improving an agent
 
