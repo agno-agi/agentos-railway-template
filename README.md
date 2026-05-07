@@ -1,12 +1,13 @@
 # AgentOS Railway Template
 
-A complete agent platform you can run on Railway for $20/month. Everything runs in your cloud, behind your auth, with your data in your Postgres.
+A complete agent platform you can run on Railway for $20/month. Everything runs in your cloud, behind your auth, with your data in your database.
 
-The template ships with three Claude Code prompts to:
+The template ships with four Claude Code prompts to:
 
 1. Create a new agent through a guided flow.
 2. Recursively improve an agent against its own behavior.
 3. Diagnose and fix failing evals.
+4. Sweep the repo for drift between docs, code, and config.
 
 The platform has five parts:
 
@@ -43,13 +44,13 @@ The template ships with two reference agents:
 | WebSearch | Direct tools | `parallel_search` / `parallel_extract` (needs `PARALLEL_API_KEY`); `web_search` / `web_fetch` keyless |
 | CodeSearch | Context provider sub-agent | `query_my_codebase` |
 
-**To create a new agent**, open [Claude Code](https://claude.ai/code) in this repo and paste:
+To create a new agent, open [Claude Code](https://claude.ai/code) in this repo and paste:
 
 ```
 Run docs/create-new-agent.md
 ```
 
-Claude opens gathers details about the agent, then generates the file in `agents/`, registers it in `app/main.py`, adds prompts to `app/config.yaml`, restarts the container (uvicorn's reloader doesn't reliably pick up newly registered modules), and smoke-tests via cURL. Usually 5-10 minutes for a simple agent.
+Claude gathers details about the agent, then generates the file in `agents/`, registers it in `app/main.py`, adds prompts to `app/config.yaml`, restarts the container (uvicorn's reloader doesn't reliably pick up newly registered modules), and smoke-tests via cURL. Usually 5-10 minutes for a simple agent.
 
 ## Step 3: Test your agent
 
@@ -82,7 +83,7 @@ Claude Code uses your running platform to fix the live agent. It runs a single-p
 6. **Hot-reload** picks up the change in ~2s.
 7. **Re-probe failing cases** plus a spot-check for regressions. Iterate up to 5 times.
 
-## Evals
+## Step 5: Lock in behavior with evals
 
 Improve-agent is a fast iteration loop. Evals are the regression suite that runs the same prompts against your agents on a schedule and tells you when behavior drifts.
 
@@ -98,30 +99,11 @@ Results log to Postgres via `db=eval_db`. Connect your AgentOS at [os.agno.com](
 
 Run [`docs/eval-and-improve.md`](docs/eval-and-improve.md) in Claude Code to run the suite, diagnose failures, and fix in scope.
 
-## Going beyond agents
-
-For most things one agent is enough. When it isn't:
-
-- **[Multi-agent teams](https://docs.agno.com/teams/overview).** Coordinate (a leader plans and synthesizes), route (a router picks the right specialist), or broadcast (run everyone in parallel). Use when the right specialist isn't known up front.
-- **[Agentic workflows](https://docs.agno.com/workflows/overview).** Deterministic step-by-step pipelines. Use when a process needs to run the same way every time.
-
-Rule of thumb: agents for open questions, teams for routing, workflows for processes.
-
-## Scheduled tasks
-
-`scheduler=True` is on in [`app/main.py`](app/main.py). Schedule any agent or workflow on a cron:
-
-- **Maintenance.** Purge sessions older than 90 days. Vacuum tables.
-- **Proactive runs.** Every weekday morning, summarize overnight news for your portfolio and send to Slack.
-- **Periodic re-evaluation.** Schedule `python -m evals` weekly to catch behavior drift before users do.
-
-See [agno scheduler docs](https://docs.agno.com/agent-os/scheduler) for the cron API.
-
-## Step 5: Run on Railway
+## Step 6: Run on Railway
 
 Requires the [Railway CLI](https://docs.railway.com/cli#installing-the-cli) and `railway login`.
 
-### 5.1 Set up your production env
+### 6.1 Set up your production env
 
 ```sh
 cp .env .env.production
@@ -130,7 +112,7 @@ cp .env .env.production
 
 The deploy scripts read `.env.production` first and fall back to `.env`. This lets you keep separate values for local and production: different OpenAI keys, production-only credentials, a different Slack workspace. `.env.production` is gitignored.
 
-### 5.2 Deploy
+### 6.2 Deploy
 
 ```sh
 ./scripts/railway/up.sh
@@ -138,9 +120,9 @@ The deploy scripts read `.env.production` first and fall back to `.env`. This le
 
 This provisions Postgres and the app service on the same private network.
 
-### 5.3 Your first deploy will fail. That's expected.
+### 6.3 Your first deploy will fail by design
 
-Token-Based Authorization is on by default. Without `JWT_VERIFICATION_KEY`, the app refuses to serve traffic. The platform's job is to keep your data off the public web.
+Token-Based Authorization is on by default. Without `JWT_VERIFICATION_KEY`, the app refuses to serve traffic. The platform's job is to keep your data off the public web, so the safe default is "refuse to start."
 
 Token-Based Auth gives you three things:
 
@@ -148,7 +130,7 @@ Token-Based Auth gives you three things:
 2. **Per-request identity.** Middleware parses the token and injects `user_id`, `session_id`, and custom claims into your endpoints. Each request is tied to a user and session.
 3. **Granular permissions.** User tokens can run an agent and view their own sessions. Admin tokens read everyone's sessions and test any agent.
 
-### 5.4 Get your verification key
+### 6.4 Get your verification key
 
 1. Open [os.agno.com](https://os.agno.com), click **Add OS** → **Live**, enter your Railway domain, and connect.
 2. Enable **Token Based Authorization**.
@@ -160,11 +142,11 @@ MIIBIjANBgkq...
 -----END PUBLIC KEY-----
 ```
 
-> Live connections to AgentOS are paid. Use the `PLATFORM30` coupon code for a 1-month free trial. Remember to cancel before the trial ends if you don't want to be charged.
+> Live connections to AgentOS are paid. Use the `PLATFORM30` coupon code for a 1-month free trial. Cancel before the trial ends if you don't want to be charged.
 
-### 5.5 Sync env and verify
+### 6.5 Sync env and verify
 
-While you have `.env.production` open, point the in-cluster scheduler at your public Railway domain so cron triggers can reach AgentOS:
+While `.env.production` is open, point the in-cluster scheduler at your public Railway domain so cron triggers can reach AgentOS:
 
 ```sh
 # .env.production
@@ -185,7 +167,7 @@ railway logs --service agent-os
 
 Once you see successful requests, AgentOS will connect through your Railway domain and you're live.
 
-### 5.6 Redeploy after code changes
+### 6.6 Redeploy after code changes
 
 For one-off updates from your machine:
 
@@ -203,15 +185,34 @@ Push to `main` then triggers a build and rolling deploy. `./scripts/railway/env-
 
 ### Opting out of JWT (not recommended)
 
-Set `authorization=False` in [`app/main.py`](app/main.py) and redeploy. Only inside a private VPC behind another auth layer. Without it, anyone who guesses your Railway domain can read your sessions and run your agents.
+Set `authorization=False` in [`app/main.py`](app/main.py) and redeploy. Use this only inside a private VPC behind another auth layer. Without it, anyone who guesses your Railway domain can read your sessions and run your agents.
 
 ### Scaling
 
 The default deploy is two replicas at 4Gi memory and 2 vCPU each (zero-downtime rolling deploys plus basic fault tolerance). Bump `numReplicas` and `limits` in [`railway.json`](railway.json) as your usage grows.
 
----
+## Extending the platform
 
-## Connect to interfaces
+### Multi-agent teams and workflows
+
+For most things one agent is enough. When it isn't:
+
+- **[Multi-agent teams](https://docs.agno.com/teams/overview).** Coordinate (a leader plans and synthesizes), route (a router picks the right specialist), or broadcast (run everyone in parallel). Use when the right specialist isn't known up front.
+- **[Agentic workflows](https://docs.agno.com/workflows/overview).** Deterministic step-by-step pipelines. Use when a process needs to run the same way every time.
+
+Rule of thumb: agents for open questions, teams for routing, workflows for processes.
+
+### Scheduled tasks
+
+`scheduler=True` is on in [`app/main.py`](app/main.py). Schedule any agent or workflow on a cron:
+
+- **Maintenance.** Purge sessions older than 90 days. Vacuum tables.
+- **Proactive runs.** Every weekday morning, summarize overnight news for your portfolio and send to Slack.
+- **Periodic re-evaluation.** Schedule `python -m evals` weekly to catch behavior drift before users do.
+
+See [agno scheduler docs](https://docs.agno.com/agent-os/scheduler) for the cron API.
+
+### Interfaces
 
 Agents land where work happens. Slack, Discord, Telegram, custom UIs in your product.
 
@@ -237,30 +238,9 @@ Swap the `agent=` arg to route Slack to a different agent. For the Slack-side ap
 
 For Discord, Telegram, WhatsApp, or a custom UI, mirror the same conditional with the relevant interface from agno. See the [agno interfaces guide](https://docs.agno.com/agent-os/interfaces/overview).
 
-When the same person reaches your agent across surfaces (Slack today, web tomorrow), you'll want the agent to know it's the same user. The pattern: an identity table mapping `(surface, surface_user_id)` to a canonical `user_id`, resolved in your webhook handler before invoking the agent. Left as an exercise.
-
-## Add tools and MCP servers
+### Tools and MCP servers
 
 The WebSearch agent in [`agents/web_search.py`](agents/web_search.py) shows the MCPTools pattern (URL plus transport). Copy it to wire any MCP server. For built-in toolkits (Slack tools, Gmail, GitHub, Linear, etc.), see [agno tools](https://docs.agno.com/tools/toolkits).
-
----
-
-## What you just built
-
-A unified agent platform running securely in your cloud. Technical users on your team can create and deploy agents using Claude Code. Non-technical users can use the no-code UI at os.agno.com. Sessions, traces, and knowledge live in your database. Your infrastructure is gated behind JWT-based RBAC and API keys are managed in one place.
-
-You can run agents, route across teams, run deterministic workflows, schedule background tasks, auto-improve agents against test cases, and connect to any surface where work happens.
-
-## Why control your data
-
-Every interaction with your platform produces data. Sessions, memory, knowledge, traces. It all flows into your Postgres. Two reasons this matters:
-
-1. **Compliance.** Customer data, proprietary code, and internal documents stay in your own database. The moment any of that touches a third-party trace tool or memory service, you've added a vendor to your security review.
-2. **Iteration.** The improve-agent loop only closes because the trace data lives where the iteration tool can read it. Vendor-stitched stacks split this surface across three SaaS products and the loop never closes.
-
-The agents you ship today are the smallest part of what you've built. The platform underneath them, and the iteration loop it enables, is the thing that compounds.
-
----
 
 ## Environment variables
 
@@ -268,12 +248,12 @@ The agents you ship today are the smallest part of what you've built. The platfo
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `OPENAI_API_KEY` | yes | — | OpenAI key for models and embeddings. |
+| `OPENAI_API_KEY` | yes | none | OpenAI key for models and embeddings. |
 | `RUNTIME_ENV` | no | `prd` | `dev` enables hot-reload and disables JWT. Compose sets this to `dev` for local. |
-| `JWT_VERIFICATION_KEY` | prd | — | Public key from os.agno.com. Required when `RUNTIME_ENV=prd`. |
+| `JWT_VERIFICATION_KEY` | prd | none | Public key from os.agno.com. Required when `RUNTIME_ENV=prd`. |
 | `AGENTOS_URL` | no | `http://127.0.0.1:8000` | Scheduler base URL. Set to your Railway domain in production. |
-| `PARALLEL_API_KEY` | no | — | Authenticates the WebSearch Agent's Parallel SDK / MCP connection. |
-| `SLACK_BOT_TOKEN` / `SLACK_SIGNING_SECRET` | no | — | Both must be set to enable the Slack interface. |
+| `PARALLEL_API_KEY` | no | none | Authenticates the WebSearch Agent's Parallel SDK / MCP connection. |
+| `SLACK_BOT_TOKEN` / `SLACK_SIGNING_SECRET` | no | none | Both must be set to enable the Slack interface. |
 | `DB_HOST` / `DB_PORT` / `DB_USER` / `DB_PASS` / `DB_DATABASE` | no | matches compose | Postgres connection. |
 | `DB_DRIVER` | no | `postgresql+psycopg` | SQLAlchemy driver. |
 | `PORT` | no | `8000` | API server port. |
@@ -285,7 +265,3 @@ The agents you ship today are the smallest part of what you've built. The platfo
 - [Agno documentation](https://docs.agno.com)
 - [AgentOS introduction](https://docs.agno.com/agent-os/introduction)
 - [Agno Discord](https://agno.com/discord)
-
----
-
-*AgentOS is open-source. You don't have to use the os.agno.com UI if you don't want to.*

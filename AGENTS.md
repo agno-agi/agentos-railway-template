@@ -135,13 +135,17 @@ Two options:
 
 ## Improving an agent
 
-Run [`docs/improve-agent.md`](docs/improve-agent.md). Single-pass loop: define test cases → probe the live agent → read logs → edit `agents/<slug>.py` → hot-reload → re-probe → iterate. Most fixes are one sentence in the instructions.
+Run [`docs/improve-agent.md`](docs/improve-agent.md). Single-pass loop: read the agent's `INSTRUCTIONS`, derive probes, run them against the live agent, judge, edit `agents/<slug>.py`, hot-reload, re-probe, iterate. Most fixes are one sentence in the instructions.
 
 ## Evals
 
 The eval suite lives in [`evals/`](evals/). Each case wraps agno's [`AgentAsJudgeEval`](https://docs.agno.com/evals/agent-as-judge) (LLM judge against a rubric, binary pass/fail) and/or [`ReliabilityEval`](https://docs.agno.com/evals/reliability) (tool-call assertion). Run with `python -m evals`. Results log to Postgres via `db=eval_db` so history is visible at os.agno.com.
 
 To diagnose failures and fix in scope, run [`docs/eval-and-improve.md`](docs/eval-and-improve.md) in Claude Code.
+
+## Reviewing the repo
+
+Run [`docs/review-and-improve.md`](docs/review-and-improve.md). A recurring sweep that diffs docs against code: every agent registered, every env var documented, every path in a doc still exists, every script behaves as advertised. Auto-fixes mechanical drift; flags anything bigger. Best run before a public-facing release or after a refactor.
 
 ## Environment Variables
 
