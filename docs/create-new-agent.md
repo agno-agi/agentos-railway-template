@@ -210,7 +210,7 @@ When the smoke test passes:
 
 1. Tell the user the agent's slug. They can chat with it at `https://os.agno.com` (if their OS is connected there) or against `http://localhost:8000` directly for local-only.
 2. Suggest the next-step loops:
-   - [`docs/improve-agent.md`](improve-agent.md) — user-driven changes (add a tool, refine the prompt, fix a bug).
-   - [`docs/tune-agent.md`](tune-agent.md) — autonomous probe-and-harden against the agent's `INSTRUCTIONS`.
+   - [`docs/extend-agent.md`](extend-agent.md) — user-driven changes (add a tool, refine the prompt, fix a bug).
+   - [`docs/improve-agent.md`](improve-agent.md) — autonomous probe-and-harden against the agent's `INSTRUCTIONS`.
 
 A simple agent usually takes 5-10 minutes from "Run docs/create-new-agent.md" to working. More if the user asks for custom tools or an MCP server with auth.

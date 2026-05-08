@@ -57,7 +57,7 @@ Out of scope (flag for the user, don't do):
 - Editing `db/` or `app/` to make a case pass.
 - Editing agno itself.
 
-For agent quality issues that need fast iteration against a live container (cURL probes, instruction tweaks), hand off to [`docs/tune-agent.md`](tune-agent.md) — its autonomous probe loop is faster than running the full eval suite per change. If the change is user-driven (add a tool, fix a known bug), use [`docs/improve-agent.md`](improve-agent.md) instead.
+For agent quality issues that need fast iteration against a live container (cURL probes, instruction tweaks), hand off to [`docs/improve-agent.md`](improve-agent.md) — its autonomous probe loop is faster than running the full eval suite per change. If the change is user-driven (add a tool, fix a known bug), use [`docs/extend-agent.md`](extend-agent.md) instead.
 
 ## 4. Re-run and stop
 

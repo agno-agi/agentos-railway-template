@@ -5,8 +5,8 @@ A complete agent platform you can run on Railway. Everything runs in your cloud,
 The template ships with five Claude Code prompts to:
 
 1. **Create** a new agent.
-2. **Improve** an agent. You steer, Claude executes.
-3. **Tune** an agent. Claude probes its own `INSTRUCTIONS` and edits until it passes.
+2. **Extend** an agent. You steer, Claude executes.
+3. **Improve** an agent. Claude probes its own `INSTRUCTIONS` and edits until it passes.
 4. **Hill-climb** failing evals.
 5. **Review** the repo for drift between docs, code, and config.
 
@@ -70,12 +70,12 @@ curl -X POST http://localhost:8000/agents/<agent-id>/runs \
   -F "stream=false"
 ```
 
-## Step 4: Improve
+## Step 4: Iterate
 
 Two recursive loops for two different patterns:
 
-1. [`docs/improve-agent.md`](docs/improve-agent.md). When you have a specific change in mind (new tool, tighter rule, better tone). You direct, Claude executes.
-2. [`docs/tune-agent.md`](docs/tune-agent.md). When the agent feels off but you can't pinpoint why. Claude derives probes from the agent's `INSTRUCTIONS`, runs them against the live container, judges responses, and edits until it passes.
+1. [`docs/extend-agent.md`](docs/extend-agent.md). When you have a specific change in mind (new tool, tighter rule, better tone). You direct, Claude executes.
+2. [`docs/improve-agent.md`](docs/improve-agent.md). When the agent feels off but you can't pinpoint why. Claude derives probes from the agent's `INSTRUCTIONS`, runs them against the live container, judges responses, and edits until it passes.
 
 Both run in Claude Code against `http://localhost:8000` with hot-reload, so edits land in ~2 seconds. No rebuild, no restart.
 
@@ -83,7 +83,7 @@ Pick the loop that matches how the agent feels right now. Use both over time.
 
 ## Step 5: Lock in behavior with evals
 
-The improve and tune loops are fast iteration. Evals are the regression suite that runs the same prompts against your agents on a schedule and tells you when behavior drifts.
+The extend and improve loops are fast iteration. Evals are the regression suite that runs the same prompts against your agents on a schedule and tells you when behavior drifts.
 
 The eval surface is two files: [`evals/cases.py`](evals/cases.py) (declarative cases) and [`evals/__main__.py`](evals/__main__.py) (runner). Evals use agno's built-in [`AgentAsJudgeEval`](https://docs.agno.com/evals/agent-as-judge) (LLM judge against a rubric, binary pass/fail) and/or [`ReliabilityEval`](https://docs.agno.com/evals/reliability) (tool-call assertion). No custom DSL, no separate harness. Agno primitives directly.
 
