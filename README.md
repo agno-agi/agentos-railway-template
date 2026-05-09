@@ -15,8 +15,8 @@ The platform has five parts:
 1. **Runtime.** FastAPI + AgentOS (`app/main.py`).
 2. **Storage.** PostgreSQL + pgvector (sessions, memory, knowledge, traces).
 3. **Connectors.** MCP servers and toolkits (`agno.tools.*`).
-4. **Interfaces.** Slack is already wired. Discord, Telegram, and custom UIs via [agno interfaces](https://docs.agno.com/agent-os/interfaces/overview).
-5. **Infrastructure.** Docker locally, Railway in production.
+4. **Interfaces.** Slack is already wired. Discord, Telegram, and custom UIs via [agno interfaces](https://docs.agno.com/agent-os/interfaces/overview?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway).
+5. **Infrastructure.** Docker locally, Railway in production. 
 
 > **TL;DR.** Run locally in four lines. Ship to Railway with one script. Iterate on agents from Claude Code. The rest of this doc is the long form.
 
@@ -36,7 +36,7 @@ docker compose up -d --build
 
 Confirm AgentOS is live at [http://localhost:8000/docs](http://localhost:8000/docs).
 
-Connect a UI: open [os.agno.com](https://os.agno.com), click **Add OS** → **Local**, enter `http://localhost:8000`, and connect.
+Connect a UI: open [os.agno.com](https://os.agno.com?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway), click **Add OS** → **Local**, enter `http://localhost:8000`, and connect.
 
 ## Step 2: Create your first agent
 
@@ -59,7 +59,7 @@ Claude asks a few questions, generates the agent file in `agents/`, registers it
 
 ## Step 3: Test
 
-Chat with your agents at [os.agno.com](https://os.agno.com). Run realistic prompts. Try edge cases. Watch the traces and sessions in the UI.
+Chat with your agents at [os.agno.com](https://os.agno.com?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway). Run realistic prompts. Try edge cases. Watch the traces and sessions in the UI.
 
 For a quick sanity check from the terminal:
 
@@ -85,7 +85,7 @@ Pick the loop that matches how the agent feels right now. Use both over time.
 
 The extend and improve loops are fast iteration. Evals are the regression suite that runs the same prompts against your agents on a schedule and tells you when behavior drifts.
 
-The eval surface is two files: [`evals/cases.py`](evals/cases.py) (declarative cases) and [`evals/__main__.py`](evals/__main__.py) (runner). Evals use agno's built-in [`AgentAsJudgeEval`](https://docs.agno.com/evals/agent-as-judge) (LLM judge against a rubric, binary pass/fail) and/or [`ReliabilityEval`](https://docs.agno.com/evals/reliability) (tool-call assertion). No custom DSL, no separate harness. Agno primitives directly.
+The eval surface is two files: [`evals/cases.py`](evals/cases.py) (declarative cases) and [`evals/__main__.py`](evals/__main__.py) (runner). Evals use agno's built-in [`AgentAsJudgeEval`](https://docs.agno.com/evals/agent-as-judge?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway) (LLM judge against a rubric, binary pass/fail) and/or [`ReliabilityEval`](https://docs.agno.com/evals/reliability?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway) (tool-call assertion). No custom DSL, no separate harness. Agno primitives directly.
 
 ```bash
 python -m evals                # run the suite (concise)
@@ -93,7 +93,7 @@ python -m evals -v             # stream the full agent run with rich panels
 python -m evals --case <name>  # run one case
 ```
 
-Results log to Postgres via `db=eval_db`. Connect your AgentOS at [os.agno.com](https://os.agno.com) to see eval history over time.
+Results log to Postgres via `db=eval_db`. Connect your AgentOS at [os.agno.com](https://os.agno.com?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway) to see eval history over time.
 
 Run [`docs/eval-and-improve.md`](docs/eval-and-improve.md) in Claude Code to run the suite, diagnose failures, and fix in scope.
 
@@ -132,7 +132,7 @@ Token-Based Auth gives you three things:
 
 > **Heads up.** Live connections at os.agno.com are a paid feature. Use coupon code `PLATFORM30` for a one-month free trial. Cancel before the trial ends if you don't want to be charged.
 
-1. Open [os.agno.com](https://os.agno.com), click **Add OS** → **Live**, enter your Railway domain, and connect.
+1. Open [os.agno.com](https://os.agno.com?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway), click **Add OS** → **Live**, enter your Railway domain, and connect.
 2. Enable **Token Based Authorization**.
 3. Paste the public key into `.env.production` (full PEM block, no surrounding quotes):
 
@@ -195,8 +195,8 @@ The default deploy is two replicas at 4Gi memory and 2 vCPU each (zero-downtime 
 
 For most things one agent is enough. When it isn't:
 
-- **[Multi-agent teams](https://docs.agno.com/teams/overview).** Coordinate (a leader plans and synthesizes), route (a router picks the right specialist), or broadcast (run everyone in parallel). Use when the right specialist isn't known up front.
-- **[Agentic workflows](https://docs.agno.com/workflows/overview).** Deterministic step-by-step pipelines. Use when a process needs to run the same way every time.
+- **[Multi-agent teams](https://docs.agno.com/teams/overview?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway).** Coordinate (a leader plans and synthesizes), route (a router picks the right specialist), or broadcast (run everyone in parallel). Use when the right specialist isn't known up front.
+- **[Agentic workflows](https://docs.agno.com/workflows/overview?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway).** Deterministic step-by-step pipelines. Use when a process needs to run the same way every time.
 
 Rule of thumb: agents for open questions, teams for routing, workflows for processes.
 
@@ -208,7 +208,7 @@ Rule of thumb: agents for open questions, teams for routing, workflows for proce
 - **Proactive runs.** Every weekday morning, summarize overnight news for your portfolio and send to Slack.
 - **Periodic re-evaluation.** Wrap the eval suite as a scheduled workflow to catch behavior drift before users do.
 
-See [agno scheduler docs](https://docs.agno.com/agent-os/scheduler) for the cron API.
+See [agno scheduler docs](https://docs.agno.com/agent-os/scheduler?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway) for the cron API.
 
 ### Interfaces
 
@@ -232,9 +232,9 @@ if SLACK_BOT_TOKEN and SLACK_SIGNING_SECRET:
     )
 ```
 
-Swap the `agent=` arg to route Slack to a different agent. For the Slack-side app setup, see the [agno Slack interface docs](https://docs.agno.com/agent-os/interfaces/overview).
+Swap the `agent=` arg to route Slack to a different agent. For the Slack-side app setup, see the [agno Slack interface docs](https://docs.agno.com/agent-os/interfaces/overview?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway).
 
-For Discord, Telegram, WhatsApp, or a custom UI, mirror the same conditional with the relevant interface from agno. See the [agno interfaces guide](https://docs.agno.com/agent-os/interfaces/overview).
+For Discord, Telegram, WhatsApp, or a custom UI, mirror the same conditional with the relevant interface from agno. See the [agno interfaces guide](https://docs.agno.com/agent-os/interfaces/overview?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway).
 
 ### Tools and MCP servers
 
@@ -254,7 +254,7 @@ linear_agent = Agent(
 )
 ```
 
-See [agno tools](https://docs.agno.com/tools/toolkits) for the full catalog.
+See [agno tools](https://docs.agno.com/tools/toolkits?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway) for the full catalog.
 
 ## Environment variables
 
@@ -276,6 +276,6 @@ See [agno tools](https://docs.agno.com/tools/toolkits) for the full catalog.
 
 ## Learn more
 
-- [Agno documentation](https://docs.agno.com)
-- [AgentOS introduction](https://docs.agno.com/agent-os/introduction)
+- [Agno documentation](https://docs.agno.com?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway)
+- [AgentOS introduction](https://docs.agno.com/agent-os/introduction?utm_source=github&utm_medium=example-repo&utm_campaign=agent-platform&utm_content=agent-platform&utm_term=railway)
 - [Agno on GitHub](https://github.com/agno-agi/agno). Drop a star if this is useful.
