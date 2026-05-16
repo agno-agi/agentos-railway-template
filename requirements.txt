@@ -34,13 +34,13 @@ jinja2==3.1.6
 jiter==0.14.0
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
-markdown-it-py==4.1.0
+markdown-it-py==4.2.0
 markupsafe==3.0.3
 mcp==1.27.0
 mdurl==0.1.2
 numpy==2.4.4
-openai==2.35.1
-openinference-instrumentation==0.1.48
+openai==2.36.0
+openinference-instrumentation==0.1.49
 openinference-instrumentation-agno==0.1.31
 openinference-semantic-conventions==0.1.29
 opentelemetry-api==1.41.1
@@ -82,7 +82,7 @@ tqdm==4.67.3
 typer==0.25.1
 typing-extensions==4.15.0
 typing-inspection==0.4.2
-urllib3==2.6.3
+urllib3==2.7.0
 uvicorn==0.46.0
 uvloop==0.22.1
 watchfiles==1.1.1

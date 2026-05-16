@@ -3,11 +3,13 @@
 > Claude Code prompt. Open Claude Code in this repo and paste:
 > `Run docs/improve-agent.md`
 
-You are autonomously improving a target agent. **No user-supplied test cases** — you derive your own probes from the agent's stated purpose (its `INSTRUCTIONS`), test the agent against them, judge the results, and iterate on `agents/<slug>.py` until the agent reliably does what its instructions say it does.
+You are recursively improving a target agent **autonomously**. **No user-supplied test cases** — you derive your own probes from the agent's stated purpose (its `INSTRUCTIONS`), test the agent against them, judge the results, and iterate on `agents/<slug>.py` until the agent reliably does what its instructions say it does.
+
+This is the autonomous half of the iteration loop. The user-driven half lives in [`docs/extend-agent.md`](extend-agent.md) (add a tool, add a capability, refine the prompt, fix a specific bug). Use `extend-agent.md` to *change* the agent; use this prompt to *harden* it against its stated intent.
 
 The platform is on `http://localhost:8000` with hot-reload enabled (`RUNTIME_ENV=dev`), so edits to `agents/<slug>.py` are picked up by uvicorn within ~1s. No rebuild, no restart.
 
-This is a **single-pass** improvement loop. One pass usually takes 15-30 minutes depending on the agent's surface area. Re-run if behavior still drifts.
+This is a **single-pass** loop. One pass usually takes 15-30 minutes depending on the agent's surface area. Re-run if behavior still drifts.
 
 ## 0. Preconditions
 

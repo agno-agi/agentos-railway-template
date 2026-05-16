@@ -110,7 +110,7 @@ docker logs agentos-api --since 30s 2>&1 | grep -E "Running: \w+\(" | head -40
 
 (`Running: <tool>(` is the tool-call line shape agno emits when `AGNO_DEBUG=True`, which compose sets for dev. Without `AGNO_DEBUG` expect no matches — `HTTP 200` and a non-empty body are then your only signal.)
 
-Quality issues (response is plausible but wrong, missing citations, wrong tool fired) are out of scope — note them and recommend [`docs/improve-agent.md`](improve-agent.md).
+Quality issues (response is plausible but wrong, missing citations, wrong tool fired) are out of scope — note them and recommend [`docs/improve-agent.md`](improve-agent.md) (autonomous) or [`docs/extend-agent.md`](extend-agent.md) (user-driven) depending on whether the user has a specific fix in mind.
 
 ## 5. Format + validate
 
